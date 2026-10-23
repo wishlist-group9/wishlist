@@ -40,3 +40,28 @@ jobs:
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
           QODANA_ENDPOINT: 'https://qodana.cloud'
+
+  rubric-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "7 Logging: no System.out / printStackTrace"
+        run: |
+          if grep -rnE 'System\.(out|err)\.print|printStackTrace\(' src/main/java; then
+            echo "::error::Use an SLF4J logger instead"; exit 1; fi
+
+      - name: "6 Queries: no SELECT *"
+        run: |
+          if grep -rniE 'select \*' src/main --include='*.java' --include='*.sql'; then
+            echo "::error::Select named columns"; exit 1; fi
+
+      - name: "9 Front-end: no inline styles"
+        run: |
+          if grep -rn 'style="' src/main/resources/templates; then
+            echo "::error::Move styles to static/css"; exit 1; fi
+
+      - name: "4 Credentials: no hardcoded passwords in properties"
+        run: |
+          if grep -rnE '^spring\.datasource\.password=[^$]' src/main/resources; then
+            echo "::error::Use \${...} environment variables"; exit 1; fi
