@@ -1,32 +1,34 @@
-# Wishlist
+# SantaClaude
 
-A web app for creating and sharing wish lists. Miniprojekt, EK Datamatiker 2. semester.
+SantaClaude er en webapplikation til at oprette og organisere sine juleønsker i form af en digital ønskeseddel. 
 
 ## Features
-- Health check: the front page shows whether the database is reachable
-- (fill in as user stories are completed)
+- Opret en ønskeseddel
+- Tilføj en næsten uendelig mængde juleønsker til din ønskeseddel
+- Tilpas dine ønsker, selv de mest flittige julenisser kan lave stavefejl
+- Slet dine ønsker, selv de mest dydige julenisser kan trænge til en (træ)skefuld selvindsigt
 
 ## Tech
 Java 21 · Spring Boot 4 · Thymeleaf · JdbcTemplate · MySQL · H2 (tests) · GitHub Actions · Qodana · Azure App Service
 
 ## Installation
-Requirements: JDK 21, MySQL running locally.
+Tekniske krav: JDK 21, MySQL lokalt.
 
-1. Clone the repo and open the folder in IntelliJ:
+1. Klon repositoriet og åben mappen i IntelliJ:
    `git clone https://github.com/wishlist-group9/wishlist.git`
-2. Set your MySQL password once (Windows terminal), then restart IntelliJ:
-   `setx DEV_PASSWORD "yourpassword"`
-3. Run `WishlistApplication` → http://localhost:8080 should say "Database: OK"
+2. Sæt dit MySQL password én gang (i din foretrukne terminal), derefter genstart IntelliJ:
+   `setx DEV_PASSWORD "ditkodeord"`
+3. Kør `WishlistApplication` → http://localhost:8080 bør vise "Database: OK"
 
-The `wishlist` database is created automatically on first run.
-Using a different MySQL user or URL? Also set `DEV_USERNAME` / `DEV_DATABASE_URL`.
+`wishlist` databasen bliver oprettet automatisk ved første kørsel.
+Bruger du en anden MySQL bruger eller URL? Indsæt også `DEV_USERNAME` / `DEV_DATABASE_URL`.
 
-Run tests (no database needed): `./mvnw clean test`
+Kør tests (intet behov for eksisterende database): `./mvnw clean test`
 
-## Usage
-- Local: http://localhost:8080
+## Anvendelse
+- Lokal: http://localhost:8080
 - Live: https://wishlist-group9-gxetc8eph5dma6bd.swedencentral-01.azurewebsites.net/
-  (Free tier: the first load after idle can take ~30 seconds)
+  (Free tier: det første run kan tage op til ~30 sekunder)
 
-## Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+## Vil du bidrage til projektet?
+Se [CONTRIBUTING.md](CONTRIBUTING.md).
