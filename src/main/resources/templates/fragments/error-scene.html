@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+    Shared SVG parts for the Santa Claude error pages (404, 500, general error).
+    Each fragment is a <g> that a page places inside its own <svg viewBox="0 0 800 400">.
+    Usage: <th:block th:replace="~{fragments/error-scene :: sky}"></th:block>
+-->
+<body>
+<svg xmlns="http://www.w3.org/2000/svg">
+
+    <!-- Night sky stars, snowy ground and the snow pile on the left -->
+    <g th:fragment="sky">
+        <g class="stars">
+            <circle cx="60" cy="40" r="2"/><circle cx="180" cy="80" r="1.5"/>
+            <circle cx="300" cy="30" r="2"/><circle cx="430" cy="70" r="1.5"/>
+            <circle cx="560" cy="35" r="2"/><circle cx="690" cy="90" r="1.5"/>
+            <circle cx="760" cy="40" r="2"/><circle cx="120" cy="150" r="1.5"/>
+            <circle cx="640" cy="160" r="1.5"/>
+        </g>
+        <path class="snow-ground" d="M0 330 Q200 312 400 330 T800 328 V400 H0 Z"/>
+        <ellipse class="snow-pile" cx="28" cy="332" rx="46" ry="22"/>
+    </g>
+    <!-- /sky -->
+
+    <!-- Reindeer facing left, nose towards the snow pile -->
+    <g th:fragment="reindeer-left" transform="translate(86 330) scale(-1 1)">
+        <g class="reindeer reindeer-sniff">
+            <ellipse class="fur" cx="0" cy="-50" rx="40" ry="20"/>
+            <ellipse class="fur-light" cx="-40" cy="-56" rx="7" ry="5"/>
+            <g class="legs">
+                <line x1="-28" y1="-38" x2="-28" y2="-4"/><line x1="-16" y1="-36" x2="-16" y2="-4"/>
+                <line x1="16" y1="-36" x2="16" y2="-4"/><line x1="28" y1="-38" x2="28" y2="-4"/>
+            </g>
+            <path class="fur" d="M26 -62 L48 -86 L58 -80 L38 -52 Z"/>
+            <ellipse class="fur" cx="58" cy="-90" rx="16" ry="11"/>
+            <ellipse class="fur-light" cx="71" cy="-87" rx="8" ry="6"/>
+            <circle class="nose" cx="78" cy="-88" r="3.5"/>
+            <circle class="eye" cx="55" cy="-94" r="2"/>
+            <ellipse class="fur" cx="46" cy="-99" rx="8" ry="3"/>
+            <path class="antler" d="M52 -100 L44 -124 M47 -114 L37 -120 M61 -101 L67 -126 M65 -116 L74 -121"/>
+        </g>
+    </g>
+    <!-- /reindeer-left -->
+
+    <!-- Reindeer facing right, looking at Santa -->
+    <g th:fragment="reindeer-right" transform="translate(176 330)">
+        <g class="reindeer reindeer-bob">
+            <ellipse class="fur" cx="0" cy="-50" rx="40" ry="20"/>
+            <ellipse class="fur-light" cx="-40" cy="-56" rx="7" ry="5"/>
+            <g class="legs">
+                <line x1="-28" y1="-38" x2="-28" y2="-4"/><line x1="-16" y1="-36" x2="-16" y2="-4"/>
+                <line x1="16" y1="-36" x2="16" y2="-4"/><line x1="28" y1="-38" x2="28" y2="-4"/>
+            </g>
+            <path class="fur" d="M26 -62 L44 -96 L56 -92 L38 -52 Z"/>
+            <ellipse class="fur" cx="54" cy="-102" rx="16" ry="11"/>
+            <ellipse class="fur-light" cx="67" cy="-99" rx="8" ry="6"/>
+            <circle class="nose" cx="74" cy="-100" r="3.5"/>
+            <circle class="eye" cx="51" cy="-106" r="2"/>
+            <ellipse class="fur" cx="42" cy="-111" rx="8" ry="3"/>
+            <path class="antler" d="M48 -112 L40 -136 M43 -126 L33 -132 M57 -113 L63 -138 M61 -128 L70 -133"/>
+        </g>
+    </g>
+    <!-- /reindeer-right -->
+
+    <!-- Santa's body from boots to belt (arms and face are drawn per page) -->
+    <g th:fragment="santa-body">
+        <rect class="boot" x="303" y="314" width="22" height="16" rx="5"/>
+        <rect class="boot" x="335" y="314" width="22" height="16" rx="5"/>
+        <rect class="suit" x="307" y="282" width="15" height="36"/>
+        <rect class="suit" x="338" y="282" width="15" height="36"/>
+        <ellipse class="suit" cx="330" cy="256" rx="42" ry="44"/>
+        <rect class="trim" x="290" y="288" width="80" height="9" rx="4.5"/>
+        <rect class="belt" x="289" y="262" width="82" height="10"/>
+        <rect class="buckle" x="322" y="259" width="16" height="16" rx="2"/>
+    </g>
+    <!-- /santa-body -->
+
+    <!-- Santa's head, beard and hat (eyes, brows and mouth are drawn per page) -->
+    <g th:fragment="santa-head">
+        <circle class="skin" cx="330" cy="194" r="24"/>
+        <path class="beard" d="M305 196 Q304 250 330 256 Q356 250 355 196 Q342 210 330 208 Q318 210 305 196 Z"/>
+        <path class="suit" d="M307 176 Q318 140 350 142 Q372 146 380 170 L372 176 Z"/>
+        <circle class="trim" cx="381" cy="172" r="7"/>
+        <rect class="trim" x="303" y="168" width="56" height="11" rx="5.5"/>
+    </g>
+    <!-- /santa-head -->
+
+    <!-- Moustache and nose, drawn on top of the page's mouth -->
+    <g th:fragment="santa-moustache">
+        <ellipse class="beard" cx="322" cy="207" rx="9" ry="5"/>
+        <ellipse class="beard" cx="338" cy="207" rx="9" ry="5"/>
+        <circle class="cheek" cx="330" cy="201" r="4"/>
+    </g>
+    <!-- /santa-moustache -->
+
+    <!-- The sleigh frame: runners and body (the load is drawn per page) -->
+    <g th:fragment="sleigh">
+        <path class="runner" d="M478 330 L700 330 Q736 330 728 300"/>
+        <line class="runner" x1="515" y1="330" x2="515" y2="300"/>
+        <line class="runner" x1="660" y1="330" x2="660" y2="300"/>
+        <path class="sleigh-body" d="M478 206 L506 206 L516 262 L668 262 Q700 262 706 232 Q712 212 734 218 Q726 302 680 302 L514 302 Q482 302 478 262 Z"/>
+        <path class="sleigh-trim" d="M516 262 L668 262 Q700 262 706 232"/>
+    </g>
+    <!-- /sleigh -->
+
+    <!-- Santa's thought bubble (the page puts something inside it) -->
+    <g th:fragment="thought-cloud">
+        <circle class="cloud" cx="392" cy="150" r="4"/>
+        <circle class="cloud" cx="404" cy="134" r="7"/>
+        <circle class="cloud" cx="418" cy="104" r="22"/>
+        <circle class="cloud" cx="446" cy="88" r="28"/>
+        <circle class="cloud" cx="478" cy="98" r="24"/>
+        <circle class="cloud" cx="456" cy="116" r="22"/>
+        <circle class="cloud" cx="432" cy="118" r="18"/>
+    </g>
+    <!-- /thought-cloud -->
+
+    <!-- Falling snow -->
+    <g th:fragment="snowfall" class="snow">
+        <circle cx="40" cy="-10" r="3"/><circle cx="130" cy="-10" r="2"/>
+        <circle cx="220" cy="-10" r="3"/><circle cx="310" cy="-10" r="2"/>
+        <circle cx="400" cy="-10" r="3"/><circle cx="490" cy="-10" r="2"/>
+        <circle cx="580" cy="-10" r="3"/><circle cx="670" cy="-10" r="2"/>
+        <circle cx="750" cy="-10" r="3"/><circle cx="350" cy="-10" r="2"/>
+    </g>
+    <!-- /snowfall -->
+
+</svg>
+</body>
+</html>

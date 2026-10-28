@@ -1,8 +1,184 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="da">
-<head><meta charset="UTF-8"><title>Siden findes ikke</title></head>
-<body>
-<h1>Siden findes ikke</h1>
-<p><a th:href="@{/}">Tilbage til forsiden</a></p>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Page not found – Santa Claude</title>
+    <link rel="stylesheet" href="/css/error.css" th:href="@{/css/error.css}">
+</head>
+<body class="error-page">
+<main class="error-main">
+
+    <figure class="scene" aria-hidden="true">
+        <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" role="presentation">
+
+            <!-- Stars -->
+            <g class="stars">
+                <circle cx="60" cy="40" r="2"/><circle cx="180" cy="80" r="1.5"/>
+                <circle cx="300" cy="30" r="2"/><circle cx="430" cy="70" r="1.5"/>
+                <circle cx="560" cy="35" r="2"/><circle cx="690" cy="90" r="1.5"/>
+                <circle cx="760" cy="40" r="2"/><circle cx="120" cy="150" r="1.5"/>
+                <circle cx="640" cy="160" r="1.5"/>
+            </g>
+
+            <!-- Snowy ground -->
+            <path class="snow-ground" d="M0 330 Q200 312 400 330 T800 328 V400 H0 Z"/>
+            <ellipse class="snow-pile" cx="28" cy="332" rx="46" ry="22"/>
+
+            <!-- Footprints wandering off: someone went looking -->
+            <g class="footprints">
+                <ellipse cx="420" cy="360" rx="6" ry="3"/><ellipse cx="440" cy="368" rx="6" ry="3"/>
+                <ellipse cx="462" cy="358" rx="6" ry="3"/><ellipse cx="760" cy="366" rx="6" ry="3"/>
+                <ellipse cx="782" cy="356" rx="6" ry="3"/>
+            </g>
+
+            <!-- Reindeer 1: nose deep in the snow pile -->
+            <g transform="translate(86 330) scale(-1 1)">
+                <g class="reindeer reindeer-sniff">
+                    <ellipse class="fur" cx="0" cy="-50" rx="40" ry="20"/>
+                    <ellipse class="fur-light" cx="-40" cy="-56" rx="7" ry="5"/>
+                    <g class="legs">
+                        <line x1="-28" y1="-38" x2="-28" y2="-4"/><line x1="-16" y1="-36" x2="-16" y2="-4"/>
+                        <line x1="16" y1="-36" x2="16" y2="-4"/><line x1="28" y1="-38" x2="28" y2="-4"/>
+                    </g>
+                    <path class="fur" d="M26 -62 L48 -86 L58 -80 L38 -52 Z"/>
+                    <ellipse class="fur" cx="58" cy="-90" rx="16" ry="11"/>
+                    <ellipse class="fur-light" cx="71" cy="-87" rx="8" ry="6"/>
+                    <circle class="nose" cx="78" cy="-88" r="3.5"/>
+                    <circle class="eye" cx="55" cy="-94" r="2"/>
+                    <ellipse class="fur" cx="46" cy="-99" rx="8" ry="3"/>
+                    <path class="antler" d="M52 -100 L44 -124 M47 -114 L37 -120 M61 -101 L67 -126 M65 -116 L74 -121"/>
+                </g>
+            </g>
+            <text class="q q1" x="32" y="212">?</text>
+
+            <!-- Reindeer 2: staring at Santa, hoping he knows -->
+            <g transform="translate(176 330)">
+                <g class="reindeer reindeer-bob">
+                    <ellipse class="fur" cx="0" cy="-50" rx="40" ry="20"/>
+                    <ellipse class="fur-light" cx="-40" cy="-56" rx="7" ry="5"/>
+                    <g class="legs">
+                        <line x1="-28" y1="-38" x2="-28" y2="-4"/><line x1="-16" y1="-36" x2="-16" y2="-4"/>
+                        <line x1="16" y1="-36" x2="16" y2="-4"/><line x1="28" y1="-38" x2="28" y2="-4"/>
+                    </g>
+                    <path class="fur" d="M26 -62 L44 -96 L56 -92 L38 -52 Z"/>
+                    <ellipse class="fur" cx="54" cy="-102" rx="16" ry="11"/>
+                    <ellipse class="fur-light" cx="67" cy="-99" rx="8" ry="6"/>
+                    <circle class="nose" cx="74" cy="-100" r="3.5"/>
+                    <circle class="eye" cx="51" cy="-106" r="2"/>
+                    <ellipse class="fur" cx="42" cy="-111" rx="8" ry="3"/>
+                    <path class="antler" d="M48 -112 L40 -136 M43 -126 L33 -132 M57 -113 L63 -138 M61 -128 L70 -133"/>
+                </g>
+            </g>
+            <text class="q q2" x="212" y="200">?</text>
+
+            <!-- Dropped magnifying glass: the search has been called off -->
+            <g class="dropped-glass">
+                <line class="handle" x1="384" y1="328" x2="404" y2="322"/>
+                <ellipse class="lens" cx="418" cy="320" rx="13" ry="8"/>
+            </g>
+
+            <!-- Santa, shrugging: "No idea where they went" -->
+            <g class="santa">
+                <rect class="boot" x="303" y="314" width="22" height="16" rx="5"/>
+                <rect class="boot" x="335" y="314" width="22" height="16" rx="5"/>
+                <rect class="suit" x="307" y="282" width="15" height="36"/>
+                <rect class="suit" x="338" y="282" width="15" height="36"/>
+                <ellipse class="suit" cx="330" cy="256" rx="42" ry="44"/>
+                <rect class="trim" x="290" y="288" width="80" height="9" rx="4.5"/>
+                <rect class="belt" x="289" y="262" width="82" height="10"/>
+                <rect class="buckle" x="322" y="259" width="16" height="16" rx="2"/>
+
+                <!-- Both arms up in a big shrug -->
+                <g class="shrug-left">
+                    <path class="sleeve" d="M296 238 Q268 238 262 214"/>
+                    <ellipse class="mitten" cx="260" cy="206" rx="9" ry="11"/>
+                    <ellipse class="mitten" cx="251" cy="210" rx="3.5" ry="6"/>
+                </g>
+                <g class="shrug-right">
+                    <path class="sleeve" d="M364 238 Q392 238 398 214"/>
+                    <ellipse class="mitten" cx="400" cy="206" rx="9" ry="11"/>
+                    <ellipse class="mitten" cx="409" cy="210" rx="3.5" ry="6"/>
+                </g>
+
+                <!-- Head: wide-eyed and baffled -->
+                <circle class="skin" cx="330" cy="194" r="24"/>
+                <path class="beard" d="M305 196 Q304 250 330 256 Q356 250 355 196 Q342 210 330 208 Q318 210 305 196 Z"/>
+                <circle class="eye-white" cx="321" cy="191" r="6"/>
+                <circle class="eye-white" cx="339" cy="191" r="6"/>
+                <circle class="eye" cx="322" cy="189" r="2.4"/>
+                <circle class="eye" cx="338" cy="192" r="2.4"/>
+                <path class="brow" d="M313 180 Q320 175 327 179"/>
+                <path class="brow" d="M333 181 Q340 179 347 183"/>
+                <ellipse class="beard" cx="322" cy="207" rx="9" ry="5"/>
+                <ellipse class="beard" cx="338" cy="207" rx="9" ry="5"/>
+                <circle class="cheek" cx="330" cy="201" r="4"/>
+                <ellipse class="mouth" cx="330" cy="217" rx="3" ry="4"/>
+
+                <!-- Hat -->
+                <path class="suit" d="M307 176 Q318 140 350 142 Q372 146 380 170 L372 176 Z"/>
+                <circle class="trim" cx="381" cy="172" r="7"/>
+                <rect class="trim" x="303" y="168" width="56" height="11" rx="5.5"/>
+            </g>
+
+            <!-- Thought bubble: where did the presents go? -->
+            <g class="thought">
+                <circle class="cloud" cx="392" cy="150" r="4"/>
+                <circle class="cloud" cx="404" cy="134" r="7"/>
+                <circle class="cloud" cx="418" cy="104" r="22"/>
+                <circle class="cloud" cx="446" cy="88" r="28"/>
+                <circle class="cloud" cx="478" cy="98" r="24"/>
+                <circle class="cloud" cx="456" cy="116" r="22"/>
+                <circle class="cloud" cx="432" cy="118" r="18"/>
+                <rect class="gift" x="430" y="94" width="30" height="22" rx="2"/>
+                <rect class="gift-lid" x="428" y="88" width="34" height="8" rx="1.5"/>
+                <rect class="ribbon" x="443" y="88" width="4" height="28"/>
+                <ellipse class="ribbon" cx="440" cy="85" rx="5.5" ry="3"/>
+                <ellipse class="ribbon" cx="450" cy="85" rx="5.5" ry="3"/>
+                <text class="q-small" x="476" y="112">?</text>
+            </g>
+
+            <!-- The sleigh: very empty -->
+            <g class="sleigh">
+                <path class="runner" d="M478 330 L700 330 Q736 330 728 300"/>
+                <line class="runner" x1="515" y1="330" x2="515" y2="300"/>
+                <line class="runner" x1="660" y1="330" x2="660" y2="300"/>
+                <path class="sleigh-body" d="M478 206 L506 206 L516 262 L668 262 Q700 262 706 232 Q712 212 734 218 Q726 302 680 302 L514 302 Q482 302 478 262 Z"/>
+                <path class="sleigh-trim" d="M516 262 L668 262 Q700 262 706 232"/>
+                <path class="sack" d="M556 262 Q560 238 594 236 Q630 236 644 262 Z"/>
+                <path class="patch" d="M590 246 l10 0 l0 8 l-10 0 Z"/>
+                <g class="tag">
+                    <line class="string" x1="640" y1="258" x2="656" y2="282"/>
+                    <rect class="tag-card" x="636" y="280" width="62" height="18" rx="3"/>
+                    <text class="tag-text" x="667" y="293">EMPTY</text>
+                </g>
+            </g>
+            <text class="q q4" x="590" y="216">?</text>
+
+            <!-- Falling snow -->
+            <g class="snow">
+                <circle cx="40" cy="-10" r="3"/><circle cx="130" cy="-10" r="2"/>
+                <circle cx="220" cy="-10" r="3"/><circle cx="310" cy="-10" r="2"/>
+                <circle cx="400" cy="-10" r="3"/><circle cx="490" cy="-10" r="2"/>
+                <circle cx="580" cy="-10" r="3"/><circle cx="670" cy="-10" r="2"/>
+                <circle cx="750" cy="-10" r="3"/><circle cx="350" cy="-10" r="2"/>
+            </g>
+        </svg>
+    </figure>
+
+    <section class="error-text">
+        <h1 class="error-code">404</h1>
+        <p class="error-title">Ho ho… oh no.</p>
+        <p class="error-message">
+            Santa, the sleigh and the whole reindeer team have searched every chimney,
+            but this page isn't on anyone's list. Dasher even checked behind the snow pile.
+        </p>
+        <nav class="error-actions" aria-label="Where to go next">
+            <a class="button button-primary" href="/lists" th:href="@{/lists}">Back to my letters</a>
+            <a class="button" href="/" th:href="@{/}">Go to the front page</a>
+        </nav>
+    </section>
+
+</main>
 </body>
 </html>
