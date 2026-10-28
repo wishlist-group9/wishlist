@@ -1,8 +1,94 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="da">
-<head><meta charset="UTF-8"><title>Siden findes ikke</title></head>
-<body>
-<h1>Der opstod fejl</h1>
-<p><a th:href="@{/}">Tilbage til forsiden</a></p>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Something went wrong – Santa Claude</title>
+    <link rel="stylesheet" href="/css/error.css" th:href="@{/css/error.css}">
+</head>
+<body class="error-page">
+<main class="error-main">
+
+    <figure class="scene" aria-hidden="true">
+        <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" role="presentation">
+            <th:block th:replace="~{fragments/error-scene :: sky}"></th:block>
+
+            <th:block th:replace="~{fragments/error-scene :: reindeer-left}"></th:block>
+            <text class="q q1" x="32" y="212">?</text>
+            <th:block th:replace="~{fragments/error-scene :: reindeer-right}"></th:block>
+            <text class="q q2" x="212" y="200">?</text>
+
+            <!-- Santa, checking his very long list twice -->
+            <g class="santa">
+                <th:block th:replace="~{fragments/error-scene :: santa-body}"></th:block>
+                <path class="sleeve" d="M296 244 Q286 236 298 228"/>
+                <path class="sleeve" d="M364 244 Q374 236 362 228"/>
+
+                <!-- The list, rolling all the way out over the snow -->
+                <g class="list">
+                    <rect class="paper" x="300" y="228" width="60" height="100"/>
+                    <polygon class="paper" points="300,326 360,326 486,334 486,342 360,336 300,336"/>
+                    <circle class="paper-roll" cx="488" cy="338" r="7"/>
+                    <rect class="paper-roll" x="294" y="222" width="72" height="10" rx="5"/>
+                    <line class="paper-lines" x1="308" y1="244" x2="340" y2="244"/>
+                    <line class="paper-lines" x1="308" y1="256" x2="336" y2="256"/>
+                    <line class="paper-lines" x1="308" y1="268" x2="342" y2="268"/>
+                    <line class="paper-lines" x1="308" y1="280" x2="334" y2="280"/>
+                    <line class="paper-lines" x1="308" y1="292" x2="340" y2="292"/>
+                    <line class="paper-lines" x1="308" y1="304" x2="330" y2="304"/>
+                    <path class="tick" d="M344 243 l3 3 l6 -7"/>
+                    <path class="tick" d="M344 255 l3 3 l6 -7"/>
+                    <path class="tick" d="M344 279 l3 3 l6 -7"/>
+                    <path class="cross" d="M345 264 l7 7 M352 264 l-7 7"/>
+                    <path class="cross" d="M345 300 l7 7 M352 300 l-7 7"/>
+                </g>
+                <circle class="mitten" cx="298" cy="228" r="8"/>
+                <circle class="mitten" cx="362" cy="228" r="8"/>
+
+                <th:block th:replace="~{fragments/error-scene :: santa-head}"></th:block>
+                <!-- Reading glasses, eyes on the list, one brow up -->
+                <circle class="glasses" cx="321" cy="191" r="7"/>
+                <circle class="glasses" cx="339" cy="191" r="7"/>
+                <path class="glasses" d="M328 191 h4"/>
+                <circle class="eye" cx="321" cy="194" r="2.2"/>
+                <circle class="eye" cx="339" cy="194" r="2.2"/>
+                <path class="brow" d="M313 180 Q320 176 327 180"/>
+                <path class="brow" d="M333 176 Q340 171 347 175"/>
+                <path class="mouth-line" d="M325 218 h10"/>
+                <th:block th:replace="~{fragments/error-scene :: santa-moustache}"></th:block>
+            </g>
+
+            <!-- Thought bubble with the error code -->
+            <g class="thought">
+                <th:block th:replace="~{fragments/error-scene :: thought-cloud}"></th:block>
+                <text class="bubble-code" x="448" y="110" th:text="${status} ?: '?'">?</text>
+            </g>
+
+            <!-- The sleigh, fully loaded: this time the presents are fine -->
+            <g class="sleigh">
+                <th:block th:replace="~{fragments/error-scene :: sleigh}"></th:block>
+                <path class="sack" d="M548 262 Q550 218 596 216 Q644 218 652 262 Z"/>
+                <path class="patch" d="M592 236 l10 0 l0 8 l-10 0 Z"/>
+            </g>
+
+            <th:block th:replace="~{fragments/error-scene :: snowfall}"></th:block>
+        </svg>
+    </figure>
+
+    <section class="error-text">
+        <h1 class="error-code" th:text="${status} ?: 'Oops'">Oops</h1>
+        <p class="error-title">Santa checked his list twice…</p>
+        <p class="error-message">
+            …and this request still isn't on it. Something unexpected happened,
+            but the reindeer are ready when you are.
+        </p>
+        <p class="error-detail" th:if="${error}" th:text="${error}">Bad Request</p>
+        <nav class="error-actions" aria-label="Where to go next">
+            <a class="button button-primary" href="/lists" th:href="@{/lists}">Back to my letters</a>
+            <a class="button" href="/" th:href="@{/}">Go to the front page</a>
+        </nav>
+    </section>
+
+</main>
 </body>
 </html>
