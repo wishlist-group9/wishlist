@@ -1,4 +1,5 @@
 # Contributing
+***Note:*** *In English to invite contributors from all over the world to collaborate on SantaClaude.*
 
 ## Workflow
 1. Pick an issue from the project board and move it to **In Progress**.
@@ -43,7 +44,15 @@
 - One issue per PR; no commented-out code
 
 ## Pull requests
-_To be agreed by the group: how many reviewers, what a review must include._
+- Every PR must be reviewed by another collaborator before merging
+- Every PR must contain the standard template (Problem->Solution->How-to-test->Scope)
 
 ## Definition of Done
-_To be agreed by the group._
+- Code compiles without errors or warnings 
+- Manually tested against all acceptance criteria by someone who didn't write it 
+- Peer reviewed - at least one other member has read the code 
+- JavaDoc written on all classes and public methods 
+- Java naming conventions followed 
+- Committed to master with a meaningful commit message 
+- Class diagram updated if new classes were added 
+- No dead code or commented-out blocks remaining 
