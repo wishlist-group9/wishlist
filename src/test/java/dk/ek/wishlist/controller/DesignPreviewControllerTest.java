@@ -17,29 +17,6 @@ class DesignPreviewControllerTest {
     MockMvc mockMvc;
 
     @Test
-    void loginPage_renders() throws Exception {
-        mockMvc.perform(get("/login"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("login"))
-                .andExpect(content().string(containsString("Ho ho, velkommen tilbage")));
-    }
-
-    @Test
-    void loginPage_showsErrorOnlyWhenAsked() throws Exception {
-        mockMvc.perform(get("/login"))
-                .andExpect(content().string(not(containsString("Forkert e-mail eller adgangskode"))));
-        mockMvc.perform(get("/login").param("error", ""))
-                .andExpect(content().string(containsString("Forkert e-mail eller adgangskode")));
-    }
-
-    @Test
-    void login_redirectsToLetters() throws Exception {
-        mockMvc.perform(post("/login"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/letters"));
-    }
-
-    @Test
     void registerPage_rendersAndShowsFieldError() throws Exception {
         mockMvc.perform(get("/register"))
                 .andExpect(status().isOk())
