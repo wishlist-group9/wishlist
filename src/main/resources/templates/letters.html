@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dine ønskesedler')}">
+    <title>Dine ønskesedler – Santa Claude</title>
+</head>
+<body>
+
+<div class="sky">
+    <svg th:replace="~{fragments/layout :: sky-decor}"></svg>
+    <header th:replace="~{fragments/layout :: topbar}"></header>
+
+    <section class="container hero">
+        <div class="hero-text">
+            <p class="hero-owner">Hej Patrick · 52 dage til juleaften</p>
+            <h1 class="hero-title">Dine ønskesedler</h1>
+            <p class="hero-lead">Skriv din egen ønskeseddel, eller åbn en, som familie og venner har delt med dig.</p>
+        </div>
+        <a class="btn btn-primary" href="#new-letter">
+            <svg th:replace="~{fragments/layout :: icon-plus}"></svg>
+            Ny ønskeseddel
+        </a>
+        <svg th:replace="~{fragments/layout :: deer-left}"></svg>
+    </section>
+
+    <svg th:replace="~{fragments/layout :: ground('normal')}"></svg>
+</div>
+
+<main class="container page page-sections">
+
+    <th:block th:if="${flash}">
+        <p th:replace="~{fragments/layout :: flash(${flash})}"></p>
+    </th:block>
+
+    <section aria-labelledby="mine-title">
+        <h2 id="mine-title" class="section-title">Skrevet af dig <span class="count">3</span></h2>
+        <ul class="grid grid-letters">
+            <li>
+                <a th:replace="~{fragments/cards :: letter-card(1, 'Patricks ønskeseddel', 'Jul · 24. dec. 2026 · 9 ønsker', 'tech', 'book', 'home', '52 dage tilbage', 'pill-soon')}"></a>
+            </li>
+            <li>
+                <a th:replace="~{fragments/cards :: letter-card(2, 'Fødselsdag 2027', 'Fødselsdag · 14. mar. 2027 · 5 ønsker', 'play', 'wear', 'book', '132 dage tilbage', 'pill-later')}"></a>
+            </li>
+            <li>
+                <a th:replace="~{fragments/cards :: letter-card(3, 'Ny lejlighed', 'Bare fordi · Ingen dato · 1 ønske', 'home', '', '', 'Ingen dato', 'pill-none')}"></a>
+            </li>
+            <li>
+                <a class="new-letter" href="#new-letter">
+                    <svg th:replace="~{fragments/icons :: gift('+')}"></svg>
+                    Skriv en ny ønskeseddel
+                </a>
+            </li>
+        </ul>
+    </section>
+
+    <section aria-labelledby="shared-title">
+        <h2 id="shared-title" class="section-title">Delt med dig <span class="count">3</span></h2>
+        <ul class="grid grid-letters">
+            <li>
+                <a th:replace="~{fragments/cards :: shared-letter-card(11, 'S', 'avatar-pine', 'Saras ønskeseddel', 'Jul · 24. dec. 2026', 5, 12, 1)}"></a>
+            </li>
+            <li>
+                <a th:replace="~{fragments/cards :: shared-letter-card(12, 'M', 'avatar-night', 'Mor og far', 'Jul · 24. dec. 2026', 1, 6, 0)}"></a>
+            </li>
+            <li>
+                <a th:replace="~{fragments/cards :: shared-letter-card(13, 'J', 'avatar-red-dark', 'Jonas fylder 30', 'Fødselsdag · 2. feb. 2027', 3, 8, 2)}"></a>
+            </li>
+        </ul>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<div th:replace="~{fragments/modals :: new-letter}"></div>
+
+</body>
+</html>

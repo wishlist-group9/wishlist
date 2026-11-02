@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<!--
+    Cards for wishes and letters (ønskesedler).
+
+    For now the pages pass sample values straight into these fragments.
+    Later, loop over real objects instead, for example:
+        <li th:each="wish : ${wishes}">
+            <article th:replace="~{fragments/cards :: wish-card(${wish.id}, ${wish.title}, ...)}"></article>
+        </li>
+
+    The wish card reads one variable from the page: "owner" (true when the
+    logged-in user owns the letter). Owners never see reservations.
+
+    Wording: the action is always "Reservér", the state is always "Reserveret".
+-->
+<body>
+
+<!--
+    status: 'open'  = nobody has reserved it
+            'mine'  = reserved by the person looking
+            'taken' = reserved by someone else
+-->
+<article th:fragment="wish-card(id, title, shop, price, category, top, status)" class="wish-card" th:id="|wish-${id}|">
+    <a class="wish-open" href="#wish-detail">
+        <div class="tile" th:classappend="|tile-${category}${status == 'taken' and !owner ? ' tile-dimmed' : ''}|">
+            <svg th:replace="~{fragments/icons :: category(${category})}"></svg>
+            <span class="badge badge-top" th:if="${top}">
+                <svg th:replace="~{fragments/icons :: star}"></svg>
+                Øverst på listen
+            </span>
+            <th:block th:unless="${owner}">
+                <span class="badge badge-reserved" th:if="${status == 'taken'}">Reserveret</span>
+                <span class="badge badge-mine" th:if="${status == 'mine'}">Reserveret af dig</span>
+            </th:block>
+        </div>
+        <span class="wish-text">
+            <span class="wish-title" th:text="${title}">Ønske</span>
+            <span class="wish-shop" th:text="${shop}">Butik</span>
+        </span>
+    </a>
+    <div class="wish-footer">
+        <span class="price" th:text="${price}">0 kr.</span>
+        <th:block th:unless="${owner}">
+            <button class="btn btn-outline btn-small" type="button" th:if="${status == 'open'}" th:aria-label="|Reservér ${title}|">Reservér</button>
+            <button class="btn btn-outline btn-small" type="button" th:if="${status == 'mine'}" th:aria-label="|Fortryd din reservation af ${title}|">Fortryd reservation</button>
+            <span class="taken" th:if="${status == 'taken'}">Reserveret</span>
+        </th:block>
+    </div>
+</article>
+
+<!-- Empty grid: same voice as the error pages -->
+<div th:fragment="no-wishes" class="empty-state">
+    <svg th:replace="~{fragments/icons :: gift('?')}"></svg>
+    <p class="empty-state-title">Ho ho … åh nej.</p>
+    <p class="muted">Ingen ønsker her. Prøv et andet filter.</p>
+</div>
+
+<!--
+    One small preview tile on a letter card. category: tech, book, wear, home, play,
+    or '' for an empty tile.
+-->
+<div th:fragment="preview-tile(category)" class="tile tile-small" th:classappend="|tile-${category == '' ? 'empty' : category}|">
+    <th:block th:if="${category != ''}">
+        <svg th:replace="~{fragments/icons :: category(${category})}"></svg>
+    </th:block>
+    <span th:if="${category == ''}" class="tile-dash" aria-hidden="true"></span>
+</div>
+
+<!--
+    One of your own letters.
+    cat1-cat3: categories of the first three wishes ('' when there is no wish)
+    dueClass:  pill-soon (under 60 days), pill-later, or pill-none
+-->
+<a th:fragment="letter-card(id, title, meta, cat1, cat2, cat3, due, dueClass)" class="letter-card" href="#" th:href="@{/letters/{id}(id=${id})}">
+    <div class="letter-previews">
+        <div th:replace="~{fragments/cards :: preview-tile(${cat1})}"></div>
+        <div th:replace="~{fragments/cards :: preview-tile(${cat2})}"></div>
+        <div th:replace="~{fragments/cards :: preview-tile(${cat3})}"></div>
+    </div>
+    <div class="letter-text">
+        <span class="letter-title" th:text="${title}">Ønskeseddel</span>
+        <span class="letter-meta" th:text="${meta}">Jul · 24. dec. 2026 · 9 ønsker</span>
+    </div>
+    <div class="letter-footer">
+        <span class="pill" th:classappend="${dueClass}" th:text="${due}">52 dage tilbage</span>
+        <span>Åbn →</span>
+    </div>
+</a>
+
+<!--
+    A gift idea from Santa Claude.
+    added: true once the user has put it on their letter
+-->
+<article th:fragment="idea-card(title, meta, category, why, added)" class="idea">
+    <div class="tile" th:classappend="|tile-${category}|">
+        <svg th:replace="~{fragments/icons :: category(${category})}"></svg>
+    </div>
+    <span class="idea-title" th:text="${title}">Idé</span>
+    <span class="idea-meta" th:text="${meta}">ca. 249 kr.</span>
+    <p class="idea-why" th:text="${why}">Hvorfor Santa Claude foreslår den.</p>
+    <button th:unless="${added}" class="btn btn-outline btn-small" type="button">
+        <svg th:replace="~{fragments/layout :: icon-plus}"></svg>
+        Tilføj ønske
+    </button>
+    <button th:if="${added}" class="btn btn-pine btn-small" type="button">
+        <svg th:replace="~{fragments/icons :: check}"></svg>
+        På din ønskeseddel
+    </button>
+</article>
+
+<!-- A letter someone shared with you -->
+<a th:fragment="shared-letter-card(id, initial, avatarClass, title, meta, reserved, total, mine)" class="letter-card letter-card-shared" href="#" th:href="@{/letters/{id}(id=${id})}">
+    <div class="letter-owner">
+        <span class="avatar" th:classappend="${avatarClass}" aria-hidden="true" th:text="${initial}">S</span>
+        <span class="letter-text">
+            <span class="letter-title" th:text="${title}">Ønskeseddel</span>
+            <span class="letter-meta" th:text="${meta}">Jul · 24. dec. 2026</span>
+        </span>
+    </div>
+    <div class="sleigh-progress">
+        <div class="sleigh-progress-label">
+            <span th:text="|${reserved} af ${total} reserveret|">5 af 12 reserveret</span>
+            <span th:text="|${total - reserved} tilbage|">7 tilbage</span>
+        </div>
+        <progress class="progress" th:value="${reserved}" th:max="${total}" th:text="|${reserved} af ${total}|">5 af 12</progress>
+    </div>
+    <div class="letter-footer">
+        <span th:if="${mine > 0}" class="pill pill-mine" th:text="|${mine} reserveret af dig|">1 reserveret af dig</span>
+        <span th:if="${mine == 0}" class="muted">Intet reserveret af dig endnu</span>
+        <span>Åbn →</span>
+    </div>
+</a>
+
+</body>
+</html>

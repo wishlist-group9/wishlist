@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Log ind')}">
+    <title>Log ind – Santa Claude</title>
+</head>
+<body>
+<div class="sky login-page">
+    <svg th:replace="~{fragments/layout :: sky-decor}"></svg>
+    <svg th:replace="~{fragments/layout :: ground('tall')}"></svg>
+
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a th:replace="~{fragments/layout :: brand(@{/login})}"></a>
+        </div>
+    </header>
+
+    <main class="login-main">
+        <svg th:replace="~{fragments/layout :: santa-sitting}"></svg>
+
+        <form class="login-card" method="post" action="/login" th:action="@{/login}">
+            <div class="login-head">
+                <h1 class="login-title">Ho ho, velkommen tilbage</h1>
+                <p>Log ind for at se dine ønskesedler og dem, der er delt med dig.</p>
+            </div>
+
+            <!-- Shown when the page is opened as /login?error -->
+            <p class="form-error" role="alert" th:if="${param.error}">Forkert e-mail eller adgangskode. Prøv igen.</p>
+
+            <label class="field">
+                E-mail
+                <input class="input" type="email" name="email" autocomplete="email" required placeholder="dig@eksempel.dk">
+            </label>
+
+            <label class="field">
+                Adgangskode
+                <input class="input" type="password" name="password" autocomplete="current-password" required>
+            </label>
+
+            <button class="btn btn-primary btn-block" type="submit">Log ind</button>
+
+            <p class="login-foot">Ny hos Santa Claude? <a href="/register" th:href="@{/register}">Opret en konto</a></p>
+        </form>
+    </main>
+</div>
+</body>
+</html>
