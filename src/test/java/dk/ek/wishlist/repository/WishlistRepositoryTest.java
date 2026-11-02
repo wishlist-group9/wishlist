@@ -60,4 +60,31 @@ public class WishlistRepositoryTest {
     }
 
 
+    @Test
+    void updateTitle_ownList_changesTitle() {
+        int id = repository.save(1, "Jul 2026", "token-1");
+
+        boolean changed = repository.updateTitle(1, id, "Fødselsdag");
+
+        assertTrue(changed);
+        assertEquals("Fødselsdag",
+                jdbcTemplate.queryForObject("SELECT title FROM wishlist WHERE id = ?", String.class, id));
+    }
+
+    @Test
+    void updateTitle_someoneElsesList_returnsFalseAndKeepsTitle() {
+        int id = repository.save(1, "Jul 2026", "token-1");
+
+        boolean changed = repository.updateTitle(2, id, "Hacket");
+
+        assertFalse(changed);
+        assertEquals("Jul 2026",
+                jdbcTemplate.queryForObject("SELECT title FROM wishlist WHERE id = ?", String.class, id));
+    }
+
+    @Test
+    void updateTitle_unknownList_returnsFalse() {
+        assertFalse(repository.updateTitle(1, 999, "Fødselsdag"));
+    }
+
 }

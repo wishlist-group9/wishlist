@@ -3,6 +3,7 @@ package dk.ek.wishlist.controller;
 import dk.ek.wishlist.exception.InvalidInputException;
 import dk.ek.wishlist.service.WishlistService;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -19,6 +20,7 @@ public class WishlistController {
     static final int DEMO_USER_ID = 1;
 
     static final String CREATED = "Ønskesedlen er oprettet.";
+    static final String RENAMED = "Navnet er ændret.";
 
     private final WishlistService wishlistService;
 
@@ -45,4 +47,27 @@ public class WishlistController {
             return "redirect:/letters#new-letter";
         }
     }
+
+    /**
+     * Renames a wishlist from the "Redigér navn" form on the list's own page.
+     *
+     * @param id       id of the wishlist, from the URL
+     * @param title    the new name typed in the form
+     * @param redirect carries a one-time message to the page we redirect to
+     * @return the list's page, with the form open again if the name was invalid
+     */
+    @PostMapping("/wishlists/{id}/title")
+    public String rename(@PathVariable int id, @RequestParam(defaultValue = "") String title,
+                         RedirectAttributes redirect) {
+        String listPage = "redirect:/letters/" + id + "?view=owner";
+        try {
+            wishlistService.rename(DEMO_USER_ID, id, title);
+            redirect.addFlashAttribute("flash", RENAMED);
+            return listPage;
+        } catch (InvalidInputException e) {
+            redirect.addFlashAttribute("titleError", e.getMessage());
+            return listPage + "#edit-letter";
+        }
+    }
+
 }
