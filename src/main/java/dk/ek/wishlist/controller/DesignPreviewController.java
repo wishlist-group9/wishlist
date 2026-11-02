@@ -58,11 +58,6 @@ public class DesignPreviewController {
         return "letters";
     }
 
-    @PostMapping("/letters")
-    public String fakeCreateLetter(RedirectAttributes redirect) {
-        redirect.addFlashAttribute(FLASH, "Ønskesedlen er oprettet.");
-        return "redirect:/letters";
-    }
 
     /**
      * /letters/1 shows the guest view, /letters/1?view=owner the owner view.

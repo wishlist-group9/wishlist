@@ -136,29 +136,17 @@
 <!-- Write a new letter -->
 <div th:fragment="new-letter" id="new-letter" class="modal">
     <form class="modal-box" role="dialog" aria-modal="true" aria-labelledby="new-letter-title"
-          method="post" th:action="@{/letters}">
+          method="post" th:action="@{/wishlists}">
         <a class="btn btn-icon modal-close" href="#" aria-label="Luk">
             <svg th:replace="~{fragments/layout :: icon-close}"></svg>
         </a>
         <h2 id="new-letter-title" class="modal-title">Skriv en ny ønskeseddel</h2>
-        <label class="field">
-            Navn
-            <input class="input" type="text" name="title" required placeholder="fx Fødselsdag 2027">
-        </label>
-        <div class="field-row">
-            <label class="field">
-                Anledning
-                <select class="select" name="occasion">
-                    <option>Jul</option>
-                    <option>Fødselsdag</option>
-                    <option>Bryllup</option>
-                    <option>Bare fordi</option>
-                </select>
-            </label>
-            <label class="field">
-                Dato (valgfri)
-                <input class="input" type="date" name="date">
-            </label>
+        <div class="field">
+            <label for="new-letter-name">Navn</label>
+            <input class="input" id="new-letter-name" type="text" name="title" required maxlength="100"
+                   placeholder="fx Jul 2026"
+                   th:attr="aria-invalid=${titleError != null} ? 'true' : null, aria-describedby=${titleError != null} ? 'new-letter-error' : null">
+            <span class="field-error" id="new-letter-error" th:if="${titleError}" th:text="${titleError}">Giv ønskesedlen et navn.</span>
         </div>
         <div class="form-actions">
             <a class="btn btn-outline" href="#">Annullér</a>
