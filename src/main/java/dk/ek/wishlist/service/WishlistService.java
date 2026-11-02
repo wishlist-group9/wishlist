@@ -4,11 +4,13 @@ import dk.ek.wishlist.exception.InvalidInputException;
 import dk.ek.wishlist.repository.WishlistRepository;
 
 import java.util.UUID;
+import org.springframework.stereotype.Service;
 
 /**
  * Business rules for wishlists: validates input and creates share tokens
  * before anything is saved through {@link WishlistRepository}.
  */
+@Service
 public class WishlistService {
     private final WishlistRepository repository;
 
@@ -41,7 +43,7 @@ public class WishlistService {
         if (cleanTitle.isEmpty()) {
             throw new InvalidInputException(TITLE_REQUIRED);
         }
-        if (cleanTitle.length() > 100) {
+        if (cleanTitle.length() > MAX_TITLE_LENGTH) {
             throw new InvalidInputException(TITLE_TOO_LONG);
         }
 
