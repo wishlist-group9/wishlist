@@ -1,6 +1,7 @@
 package dk.ek.wishlist.service;
 
 import dk.ek.wishlist.exception.InvalidInputException;
+import dk.ek.wishlist.exception.NotFoundException;
 import dk.ek.wishlist.repository.HealthRepository;
 import dk.ek.wishlist.repository.WishlistRepository;
 import org.junit.jupiter.api.Test;
@@ -81,5 +82,30 @@ public class WishlistServiceTest {
         List<String> tokens = tokenCaptor.getAllValues();
         assertEquals(2, tokens.size());
         assertNotEquals(tokens.get(0), tokens.get(1));
+    }
+
+    @Test
+    void rename_validTitle_savesTrimmedTitle() {
+        when(repository.updateTitle(1, 5, "Fødselsdag")).thenReturn(true);
+
+        service.rename(1, 5, "  Fødselsdag  ");
+
+        verify(repository).updateTitle(1, 5, "Fødselsdag");
+    }
+
+    @Test
+    void rename_blankTitle_throwsAndDoesNotUpdate() {
+        InvalidInputException e = assertThrows(InvalidInputException.class,
+                () -> service.rename(1, 5, "   "));
+
+        assertEquals(WishlistService.TITLE_REQUIRED, e.getMessage());
+        verify(repository, never()).updateTitle(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    void rename_notOwnersList_throwsNotFound() {
+        when(repository.updateTitle(1, 5, "Fødselsdag")).thenReturn(false);
+
+        assertThrows(NotFoundException.class, () -> service.rename(1, 5, "Fødselsdag"));
     }
 }

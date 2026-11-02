@@ -155,5 +155,27 @@
     </form>
 </div>
 
+<!-- Rename a letter. id and title come from the page. -->
+<div th:fragment="edit-letter(id, title)" id="edit-letter" class="modal">
+    <form class="modal-box" role="dialog" aria-modal="true" aria-labelledby="edit-letter-title"
+          method="post" th:action="@{/wishlists/{id}/title(id=${id})}">
+        <a class="btn btn-icon modal-close" href="#" aria-label="Luk">
+            <svg th:replace="~{fragments/layout :: icon-close}"></svg>
+        </a>
+        <h2 id="edit-letter-title" class="modal-title">Redigér navn</h2>
+        <div class="field">
+            <label for="edit-letter-name">Navn</label>
+            <input class="input" id="edit-letter-name" type="text" name="title" required maxlength="100"
+                   th:value="${title}"
+                   th:attr="aria-invalid=${titleError != null} ? 'true' : null, aria-describedby=${titleError != null} ? 'edit-letter-error' : null">
+            <span class="field-error" id="edit-letter-error" th:if="${titleError}" th:text="${titleError}">Giv ønskesedlen et navn.</span>
+        </div>
+        <div class="form-actions">
+            <a class="btn btn-outline" href="#">Annullér</a>
+            <button class="btn btn-primary" type="submit">Gem navn</button>
+        </div>
+    </form>
+</div>
+
 </body>
 </html>
