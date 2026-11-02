@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Opret en konto')}">
+    <title>Opret en konto – Santa Claude</title>
+</head>
+<!--
+    Create an account. Same layout as the login page.
+    The page reads "emailError" from the model: when it is set, the e-mail field
+    is marked as invalid and the message is shown under it.
+    (Preview: /register?error shows how that looks.)
+-->
+<body>
+<div class="sky login-page">
+    <svg th:replace="~{fragments/layout :: sky-decor}"></svg>
+    <svg th:replace="~{fragments/layout :: ground('tall')}"></svg>
+
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a th:replace="~{fragments/layout :: brand(@{/login})}"></a>
+        </div>
+    </header>
+
+    <main class="login-main">
+        <svg th:replace="~{fragments/layout :: santa-sitting}"></svg>
+
+        <form class="login-card" method="post" action="/register" th:action="@{/register}">
+            <div class="login-head">
+                <h1 class="login-title">Opret en konto</h1>
+                <p>Så kan du skrive ønskesedler og dele dem med familie og venner.</p>
+            </div>
+
+            <label class="field">
+                Navn
+                <input class="input" type="text" name="name" autocomplete="name" required>
+            </label>
+
+            <div class="field">
+                <label for="email">E-mail</label>
+                <input class="input" id="email" type="email" name="email" autocomplete="email" required
+                       placeholder="dig@eksempel.dk"
+                       th:attr="aria-invalid=${emailError != null} ? 'true' : null, aria-describedby=${emailError != null} ? 'email-error' : null">
+                <span class="field-error" id="email-error" th:if="${emailError}">
+                    <span th:text="${emailError}">Den e-mail er allerede i brug.</span>
+                    <a href="/login" th:href="@{/login}">Log ind i stedet</a>
+                </span>
+            </div>
+
+            <div class="field">
+                <label for="password">Adgangskode</label>
+                <input class="input" id="password" type="password" name="password" autocomplete="new-password"
+                       required minlength="8" aria-describedby="password-hint">
+                <span class="field-hint" id="password-hint">Mindst 8 tegn.</span>
+            </div>
+
+            <button class="btn btn-primary btn-block" type="submit">Opret konto</button>
+
+            <p class="login-foot">Har du allerede en konto? <a href="/login" th:href="@{/login}">Log ind</a></p>
+        </form>
+    </main>
+</div>
+</body>
+</html>

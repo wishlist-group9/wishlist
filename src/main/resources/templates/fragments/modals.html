@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<!--
+    Modals. For now they open with plain links (href="#add-wish") and the CSS
+    :target selector, so no JavaScript is needed. Close = link back to "#".
+    The browser's back button also closes them.
+
+    Later, with htmx: load the fragment into the page with hx-get and give the
+    .modal element the class "is-open" instead of relying on :target.
+-->
+<body>
+
+<!-- Wish details (sample content for the design). Guests can reserve; owners can edit or delete. -->
+<div th:fragment="wish-detail" id="wish-detail" class="modal">
+    <div class="modal-box modal-box-wide" role="dialog" aria-modal="true" aria-labelledby="wish-detail-title">
+        <a class="btn btn-icon modal-close" href="#" aria-label="Luk">
+            <svg th:replace="~{fragments/layout :: icon-close}"></svg>
+        </a>
+        <div class="detail-image tile tile-large tile-tech">
+            <svg th:replace="~{fragments/icons :: category('tech')}"></svg>
+        </div>
+        <div class="detail-body">
+            <div class="detail-head">
+                <span class="muted">Proshop</span>
+                <h2 id="wish-detail-title" class="detail-title">Støjreducerende høretelefoner</h2>
+                <span class="detail-price">2.499 kr.</span>
+            </div>
+            <p class="muted">Over-ear, sort eller grå. Til toget og lange læsedage.</p>
+            <dl class="detail-facts">
+                <dt>Prioritet</dt><dd>Øverst på listen</dd>
+            </dl>
+            <div class="detail-actions">
+                <button th:unless="${owner}" class="btn btn-primary" type="button">Reservér</button>
+                <th:block th:if="${owner}">
+                    <a class="btn btn-outline" href="#edit-wish">Redigér</a>
+                    <a class="btn btn-outline" href="#delete-wish">Slet</a>
+                </th:block>
+                <a class="btn btn-outline" href="https://www.proshop.dk" target="_blank" rel="noopener">
+                    Gå til butik
+                    <svg th:replace="~{fragments/icons :: external}"></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--
+    The wish form, used both for adding and for editing a wish.
+    modalId:   'add-wish' or 'edit-wish' (the #link that opens it)
+    heading:   title at the top
+    action:    where the form is sent
+    submit:    text on the red button
+    showHelp:  true shows the "Let Santa Claude help" banner (only when adding)
+    the rest:  the current values ('' when adding)
+-->
+<div th:fragment="wish-form(modalId, heading, action, submit, showHelp, title, price, shop, url, category, top, note)"
+     th:id="${modalId}" class="modal">
+    <form class="modal-box" role="dialog" aria-modal="true" th:attr="aria-labelledby=|${modalId}-title|"
+          method="post" th:action="${action}">
+        <a class="btn btn-icon modal-close" href="#" aria-label="Luk">
+            <svg th:replace="~{fragments/layout :: icon-close}"></svg>
+        </a>
+        <h2 class="modal-title" th:id="|${modalId}-title|" th:text="${heading}">Tilføj et ønske</h2>
+
+        <a th:if="${showHelp}" class="santa-help" href="/letters/1/santa" th:href="@{/letters/{id}/santa(id=1)}">
+            <svg width="34" height="30" viewBox="300 138 90 44" aria-hidden="true">
+                <path class="hat-red" d="M307 176 Q318 140 350 142 Q372 146 380 170 L372 176 Z"/>
+                <circle class="hat-trim-dark" cx="381" cy="172" r="7"/>
+                <rect class="hat-trim-dark" x="303" y="168" width="56" height="11" rx="5.5"/>
+            </svg>
+            <span class="santa-help-text">
+                <strong>Ved du ikke, hvad du skal ønske dig?</strong>
+                <span>Lad Santa Claude hjælpe →</span>
+            </span>
+        </a>
+
+        <label class="field">
+            Hvad ønsker du dig?
+            <input class="input" type="text" name="title" required th:value="${title}" placeholder="fx Uldtørklæde, mørkegrøn">
+        </label>
+        <div class="field-row">
+            <label class="field">
+                Pris (kr.)
+                <input class="input" type="number" name="price" min="0" th:value="${price}" placeholder="0">
+            </label>
+            <label class="field">
+                Butik
+                <input class="input" type="text" name="shop" th:value="${shop}" placeholder="Hvor kan den købes?">
+            </label>
+        </div>
+        <label class="field">
+            Link
+            <input class="input" type="url" name="url" th:value="${url}" placeholder="https://">
+        </label>
+        <label class="field">
+            Kategori
+            <select class="select" name="category">
+                <option value="play" th:selected="${category == 'play'}">Gave / oplevelse</option>
+                <option value="tech" th:selected="${category == 'tech'}">Elektronik</option>
+                <option value="book" th:selected="${category == 'book'}">Bøger</option>
+                <option value="wear" th:selected="${category == 'wear'}">Tøj</option>
+                <option value="home" th:selected="${category == 'home'}">Hjem</option>
+            </select>
+        </label>
+        <label class="field">
+            Note
+            <textarea class="input textarea" name="note" rows="3" th:text="${note}" placeholder="Størrelse, farve eller andet, giveren skal vide"></textarea>
+        </label>
+        <label class="check">
+            <input type="checkbox" name="top" th:checked="${top}">
+            Øverst på listen
+        </label>
+        <div class="form-actions">
+            <a class="btn btn-outline" href="#">Annullér</a>
+            <button class="btn btn-primary" type="submit" th:text="${submit}">Tilføj ønske</button>
+        </div>
+    </form>
+</div>
+
+<!-- "Are you sure?" before deleting a wish (owner only) -->
+<div th:fragment="delete-wish" id="delete-wish" class="modal">
+    <form class="modal-box" role="alertdialog" aria-modal="true" aria-labelledby="delete-wish-title"
+          aria-describedby="delete-wish-text" method="post" th:action="@{/wishes/{id}/delete(id=1)}">
+        <h2 id="delete-wish-title" class="modal-title">Slet ønsket?</h2>
+        <p id="delete-wish-text" class="modal-text">
+            <strong>Støjreducerende høretelefoner</strong> bliver fjernet fra din ønskeseddel.
+            Det kan ikke fortrydes.
+        </p>
+        <div class="form-actions">
+            <a class="btn btn-outline" href="#wish-detail">Annullér</a>
+            <button class="btn btn-primary" type="submit">Slet ønske</button>
+        </div>
+    </form>
+</div>
+
+<!-- Write a new letter -->
+<div th:fragment="new-letter" id="new-letter" class="modal">
+    <form class="modal-box" role="dialog" aria-modal="true" aria-labelledby="new-letter-title"
+          method="post" th:action="@{/letters}">
+        <a class="btn btn-icon modal-close" href="#" aria-label="Luk">
+            <svg th:replace="~{fragments/layout :: icon-close}"></svg>
+        </a>
+        <h2 id="new-letter-title" class="modal-title">Skriv en ny ønskeseddel</h2>
+        <label class="field">
+            Navn
+            <input class="input" type="text" name="title" required placeholder="fx Fødselsdag 2027">
+        </label>
+        <div class="field-row">
+            <label class="field">
+                Anledning
+                <select class="select" name="occasion">
+                    <option>Jul</option>
+                    <option>Fødselsdag</option>
+                    <option>Bryllup</option>
+                    <option>Bare fordi</option>
+                </select>
+            </label>
+            <label class="field">
+                Dato (valgfri)
+                <input class="input" type="date" name="date">
+            </label>
+        </div>
+        <div class="form-actions">
+            <a class="btn btn-outline" href="#">Annullér</a>
+            <button class="btn btn-primary" type="submit">Opret ønskeseddel</button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
