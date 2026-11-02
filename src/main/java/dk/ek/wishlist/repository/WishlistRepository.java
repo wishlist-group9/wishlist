@@ -18,6 +18,8 @@ public class WishlistRepository {
     }
 
     private static final String INSERT_WISHLIST = "INSERT INTO wishlist (user_id, title, share_token) VALUES (?,?,?)";
+    private static final String UPDATE_TITLE = "UPDATE wishlist SET title = ? WHERE id = ? AND user_id = ?";
+
 
     /**
      * Saves a new wishlist and returns the id the database gave it.
@@ -45,5 +47,18 @@ public class WishlistRepository {
             throw new IllegalStateException("Databasen returnerede intet id for den nye ønskeseddel");
         }
         return id.intValue();
+    }
+
+    /**
+     * Changes the title of a wishlist, but only if it belongs to the given user.
+     *
+     * @param userId     id of the user trying to rename the list
+     * @param wishlistId id of the wishlist to rename
+     * @param title      the new title, already validated by the service
+     * @return {@code true} if the title was changed; {@code false} if the wishlist
+     *         doesn't exist or belongs to someone else
+     */
+    public boolean updateTitle(int userId, int wishlistId, String title) {
+        return jdbcTemplate.update(UPDATE_TITLE, title, wishlistId, userId) == 1;
     }
 }

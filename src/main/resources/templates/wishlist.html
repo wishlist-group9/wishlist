@@ -47,6 +47,7 @@
                     <svg th:replace="~{fragments/layout :: icon-plus}"></svg>
                     Tilføj ønske
                 </a>
+                <a class="btn btn-snow" href="#edit-letter" th:if="${owner}">Redigér navn</a>
                 <details class="share">
                     <summary class="btn btn-snow">
                         <svg th:replace="~{fragments/icons :: link}"></svg>
@@ -109,6 +110,7 @@
     <div th:replace="~{fragments/modals :: wish-form('add-wish', 'Tilføj et ønske', @{/letters/1/wishes}, 'Tilføj ønske', true, '', '', '', '', 'play', false, '')}"></div>
     <div th:replace="~{fragments/modals :: wish-form('edit-wish', 'Redigér ønske', @{/wishes/1}, 'Gem ændringer', false, 'Støjreducerende høretelefoner', '2499', 'Proshop', 'https://www.proshop.dk', 'tech', true, 'Over-ear, sort eller grå. Til toget og lange læsedage.')}"></div>
     <div th:replace="~{fragments/modals :: delete-wish}"></div>
+    <div th:replace="~{fragments/modals :: edit-letter(1, 'Jul 2026')}"></div>
 </th:block>
 
 </body>
