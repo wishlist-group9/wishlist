@@ -1,5 +1,6 @@
 package dk.ek.wishlist.controller;
 
+import dk.ek.wishlist.exception.NotFoundException;
 import dk.ek.wishlist.model.Wish;
 import dk.ek.wishlist.service.WishService;
 import org.springframework.stereotype.Controller;
@@ -33,7 +34,7 @@ public class WishController {
      * @param wish the wish containing the values submitted in the form
      * @param bindingResult contains errors when converting form values
      * @param redirectAttributes used to display messages after redirecting
-     * @return a redirect to the wishlist page
+     * @return a redirect to the wishlist page, or the overview if th wishlist does not exist
      */
     @PostMapping("/wishlists/{wishlistId}/wishes")
     public String createWish(
@@ -63,7 +64,12 @@ public class WishController {
             redirectAttributes.addFlashAttribute(
                     "errorMessage", e.getMessage()
             );
+        } catch (NotFoundException e) {
+            //Return to the overview when the wishlist does not exist
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage", e.getMessage()
+            );
+            return "redirect:/letters";
         }
-
         return "redirect:/letters/" + wishlistId + "?view=owner";    }
 }

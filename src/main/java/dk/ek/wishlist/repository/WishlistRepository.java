@@ -61,4 +61,19 @@ public class WishlistRepository {
     public boolean updateTitle(int userId, int wishlistId, String title) {
         return jdbcTemplate.update(UPDATE_TITLE, title, wishlistId, userId) == 1;
     }
+
+    /**
+     * Checks whether a wishlist exists.
+     *
+     * @param wishlistId the wishlist ID
+     * @return true if the wishlist exists, otherwise false
+     */
+    public boolean existsById(int wishlistId) {
+        String sql = "SELECT COUNT(*) FROM wishlist WHERE id = ?";
+
+        Integer count = jdbcTemplate.queryForObject(
+                sql, Integer.class, wishlistId
+        );
+        return count != null && count > 0;
+    }
 }

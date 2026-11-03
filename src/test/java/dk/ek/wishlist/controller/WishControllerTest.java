@@ -1,6 +1,7 @@
 package dk.ek.wishlist.controller;
 
 import dk.ek.wishlist.exception.InvalidInputException;
+import dk.ek.wishlist.exception.NotFoundException;
 import dk.ek.wishlist.model.Wish;
 import dk.ek.wishlist.service.WishService;
 import org.junit.jupiter.api.BeforeEach;
@@ -117,5 +118,24 @@ class WishControllerTest{
 
         // Binding errors must stop the request before calling the service.
         verifyNoInteractions(service);
+    }
+
+    @Test
+    void createWish_unknownWishlist_redirectsToOverviewWithError() throws Exception {
+        //Arrange: Make the mock service reject the unknown wishlist
+        doThrow(new NotFoundException("Ønskesedlen findes ikke."))
+                .when(service).createWish(any(Wish.class));
+
+        //Act and assert: Check the redirect and error message
+        mockMvc.perform(post("/wishlists/999/wishes")
+                        .param("title", "En bog"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/letters"))
+                .andExpect(flash().attribute(
+                        "errorMessage", "Ønskesedlen findes ikke."
+                ))
+                .andExpect(flash().attributeCount(1));
+
+        verify(service).createWish(any(Wish.class));
     }
 }

@@ -31,6 +31,12 @@
         <p th:replace="~{fragments/layout :: flash(${flash})}"></p>
     </th:block>
 
+    <p class="field-error"
+       role="alert"
+       th:if="${errorMessage}"
+       th:text="${errorMessage}">
+    </p>
+
     <section aria-labelledby="mine-title">
         <h2 id="mine-title" class="section-title">Skrevet af dig <span class="count">3</span></h2>
         <ul class="grid grid-letters">
