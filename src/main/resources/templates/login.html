@@ -27,8 +27,9 @@
             <th:block th:if="${flash}"><p th:replace="~{fragments/layout :: flash(${flash})}"></p></th:block>
 
 
-            <!-- Shown when the page is opened as /login?error -->
-            <p class="form-error" role="alert" th:if="${param.error}">Forkert e-mail eller adgangskode. Prøv igen.</p>
+            <!-- Shown when login fails. Message is set by UserController -->
+            <p class="form-error" role="alert" th:if="${error}" th:text="${error}"></p>
+
 
             <label class="field">
                 E-mail

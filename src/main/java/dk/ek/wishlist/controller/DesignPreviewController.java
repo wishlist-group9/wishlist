@@ -22,16 +22,7 @@ public class DesignPreviewController {
     private static final String FLASH = "flash";
     private static final String OWNER_VIEW = "redirect:/letters/1?view=owner";
 
-    @GetMapping("/login")
-    public String login() {
-        return "login";
-    }
 
-    /** Preview only: any login "works" and goes to the overview. */
-    @PostMapping("/login")
-    public String fakeLogin() {
-        return "redirect:/letters";
-    }
 
     @PostMapping("/logout")
     public String logout() {

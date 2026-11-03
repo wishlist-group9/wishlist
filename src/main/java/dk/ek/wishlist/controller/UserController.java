@@ -1,7 +1,10 @@
 package dk.ek.wishlist.controller;
 
+import dk.ek.wishlist.exception.InvalidLoginException;
+import dk.ek.wishlist.model.User;
 import dk.ek.wishlist.exception.InvalidInputException;
 import dk.ek.wishlist.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +14,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
 /**
+ * Handles logging in. A successful login stores the user's id in the session
+ * under {@code "userId"}.
  * Handles the web requests for registering a new user: shows the form and receives
  * it when it is submitted. The rules (validation, hashing and saving)
  * live in UserService, so this class only connects the web to tho the service
@@ -36,6 +41,11 @@ public class UserController {
         this.userService = userService;
     }
 
+    /** Shows the login form. */
+    @GetMapping("/login")
+    public String showLoginForm() {
+        return "login";
+    }
 
     /**
      * Shows the empty registration form.
@@ -76,6 +86,33 @@ public class UserController {
             model.addAttribute("name", name);
             model.addAttribute("email", email);
             return "register";
+        }
+    }
+
+
+    /**
+     * Logs the user in and sends them to their wishlists.
+     *
+     * @param email    the e-mail the user typed
+     * @param password the password the user typed, in plain text
+     * @param session  the session where the logged-in user's id is stored
+     * @param model    gets an {@code "error"} message if the login fails
+     * @return a redirect to {@code /letters} on success, otherwise the login page with an error
+    */
+    @PostMapping("/login")
+    public String login(@RequestParam String email,
+                        @RequestParam String password,
+                        HttpSession session,
+                        Model model) {
+        try {
+            User user = userService.login(email, password);
+
+            session.setAttribute("userId", user.getId());
+            return "redirect:/letters";
+
+        } catch (InvalidLoginException e) {
+            model.addAttribute("error", e.getMessage());
+            return "login";
         }
     }
 }

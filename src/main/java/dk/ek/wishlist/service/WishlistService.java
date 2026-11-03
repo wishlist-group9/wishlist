@@ -1,14 +1,17 @@
 package dk.ek.wishlist.service;
 
 import dk.ek.wishlist.exception.InvalidInputException;
+import dk.ek.wishlist.exception.NotFoundException;
 import dk.ek.wishlist.repository.WishlistRepository;
 
 import java.util.UUID;
+import org.springframework.stereotype.Service;
 
 /**
  * Business rules for wishlists: validates input and creates share tokens
  * before anything is saved through {@link WishlistRepository}.
  */
+@Service
 public class WishlistService {
     private final WishlistRepository repository;
 
@@ -18,6 +21,22 @@ public class WishlistService {
 
     public WishlistService(WishlistRepository repository) {
         this.repository = repository;
+    }
+
+    /**
+     * Trims the title and checks the rules shared by create and rename.
+     *
+     * @throws InvalidInputException if the title is empty or longer than {@value #MAX_TITLE_LENGTH} characters
+     */
+    private String cleanTitle(String title) {
+        String clean = title == null ? "" : title.trim();
+        if (clean.isEmpty()) {
+            throw new InvalidInputException(TITLE_REQUIRED);
+        }
+        if (clean.length() > MAX_TITLE_LENGTH) {
+            throw new InvalidInputException(TITLE_TOO_LONG);
+        }
+        return clean;
     }
 
 
@@ -34,22 +53,25 @@ public class WishlistService {
      *                               {@value #MAX_TITLE_LENGTH} characters
      */
     public int create(int userId, String title) {
-        // 1. Clean the input
-        String cleanTitle = title == null ? "" : title.trim();
-
-        // 2. Check the rules
-        if (cleanTitle.isEmpty()) {
-            throw new InvalidInputException(TITLE_REQUIRED);
-        }
-        if (cleanTitle.length() > 100) {
-            throw new InvalidInputException(TITLE_TOO_LONG);
-        }
-
-        // 3. Create the share token
+        String cleanTitle = cleanTitle(title);
         String shareToken = UUID.randomUUID().toString();
-
-        // 4. Save, and return the new id
         return repository.save(userId, cleanTitle, shareToken);
+    }
+
+    /**
+     * Gives one of the user's wishlists a new title.
+     *
+     * @param userId     id of the user renaming the list
+     * @param wishlistId id of the wishlist to rename
+     * @param title      the new title as typed; it's trimmed before it's saved
+     * @throws InvalidInputException if the title breaks the rules in {@link #cleanTitle(String)}
+     * @throws NotFoundException     if the wishlist doesn't exist or belongs to someone else
+     */
+    public void rename(int userId, int wishlistId, String title) {
+        String cleanTitle = cleanTitle(title);
+        if (!repository.updateTitle(userId, wishlistId, cleanTitle)) {
+            throw new NotFoundException("Ønskesedlen findes ikke.");
+        }
     }
 
 }

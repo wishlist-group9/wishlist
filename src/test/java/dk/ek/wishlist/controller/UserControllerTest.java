@@ -1,6 +1,7 @@
 package dk.ek.wishlist.controller;
 
-import dk.ek.wishlist.exception.InvalidInputException;
+import dk.ek.wishlist.exception.InvalidLoginException;
+import dk.ek.wishlist.model.User;
 import dk.ek.wishlist.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,52 +9,57 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
 class UserControllerTest {
+
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
+
     @MockitoBean
-    UserService userService;
+    private UserService userService;
 
     @Test
-    void registerPage_rendersForm() throws Exception {
-        mockMvc.perform(get("/register"))
+    void shouldShowLoginPage() throws Exception {
+        mockMvc.perform(get("/login"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("register"));
+                .andExpect(view().name("login"))
+                .andExpect(content().string(containsString("Ho ho, velkommen tilbage")));
     }
 
     @Test
-    void register_validInput_redirectsToLoginWithFlash() throws Exception {
-        mockMvc.perform(post("/register")
-                        .param("name", "Anna")
-                        .param("email", "anna@mail.dk")
-                        .param("password", "hunter22"))
+    void shouldRedirectToLettersAndStoreUserIdWhenLoginIsCorrect() throws Exception {
+        // Arrange
+        User user = new User(1, "Test Ejer", "ejer@test.dk", "hash");
+        when(userService.login("ejer@test.dk", "1234")).thenReturn(user);
+
+        // Act + Assert
+        mockMvc.perform(post("/login")
+                        .param("email", "ejer@test.dk")
+                        .param("password", "1234"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"))
-                .andExpect(flash().attributeExists("flash"));
-
-        verify(userService).register("Anna", "anna@mail.dk", "hunter22");
+                .andExpect(redirectedUrl("/letters"))
+                .andExpect(request().sessionAttribute("userId", 1));
     }
 
     @Test
-    void register_invalidInput_showsFormAgainWithError() throws Exception {
-        doThrow(new InvalidInputException("Skriv dit navn."))
-                .when(userService).register("", "anna@mail.dk", "hunter22");
+    void shouldShowErrorWhenLoginIsWrong() throws Exception {
+        // Arrange
+        when(userService.login("ejer@test.dk", "forkert"))
+                .thenThrow(new InvalidLoginException("Forkert e-mail eller adgangskode"));
 
-        mockMvc.perform(post("/register")
-                        .param("name", "")
-                        .param("email", "anna@mail.dk")
-                        .param("password", "hunter22"))
+        // Act + Assert
+        mockMvc.perform(post("/login")
+                        .param("email", "ejer@test.dk")
+                        .param("password", "forkert"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("register"))
-                .andExpect(model().attribute("error", "Skriv dit navn."))
-                .andExpect(model().attribute("email", "anna@mail.dk"))
-                .andExpect(model().attributeDoesNotExist("password"));
+                .andExpect(view().name("login"))
+                .andExpect(model().attribute("error", "Forkert e-mail eller adgangskode"))
+                .andExpect(content().string(containsString("Forkert e-mail eller adgangskode")));
     }
 }

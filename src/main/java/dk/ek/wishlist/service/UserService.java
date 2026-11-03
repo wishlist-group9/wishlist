@@ -1,9 +1,11 @@
 package dk.ek.wishlist.service;
 
 import dk.ek.wishlist.exception.InvalidInputException;
+import dk.ek.wishlist.exception.InvalidLoginException;
+import dk.ek.wishlist.model.User;
 import dk.ek.wishlist.repository.UserRepository;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,13 +16,10 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class UserService {
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    // The repository is the only thing that talks to the database
-    // The service never writes SQL itself
-    private final UserRepository repository;
-
-    // The tool that creates and checks BCrypt hashes
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private static final String INVALID_LOGIN = "Forkert e-mail eller adgangskode";
 
     // Max lengths - they match the columns in shcema.sql, so the database
     // never has to reject a value that is too long
@@ -43,14 +42,30 @@ public class UserService {
 
     // Constructor injection: Spring sees that this class needs a UserRepository,
     // creates it, and passes it in.
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
 
     /**
-     * Creates the service
+     * The same error is used for an unknown e-mail and a wrong password, so the
+     * message doesn't reveal which e-mails have an account.
      *
-     * @param repository the repository used to save and find users
+     * @param email       the e-mail the user typed
+     * @param rawPassword the password the user typed, in plain text
+     * @return the logged-in user
+     * @throws InvalidLoginException if no user has that e-mail, or the password doesn't match
      */
-    public UserService(UserRepository repository){
-        this.repository = repository;
+    public User login(String email, String rawPassword) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new InvalidLoginException(INVALID_LOGIN);
+        }
+        if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+            throw new InvalidLoginException(INVALID_LOGIN);
+        }
+        return user;
     }
 
     // Registers a new user
@@ -61,6 +76,7 @@ public class UserService {
     /**
      * Registers a new user
      * <p>
+     *
      *     Name and email are trimmed and the email is made lower case before it is checked
      *     and saved. The password is not trimmed. It is hashed with BCrypt, so the plain
      *     password is never stored.
@@ -92,14 +108,12 @@ public class UserService {
         if (cleanEmail.length() > MAX_EMAIL_LENGTH) {
             throw new InvalidInputException(EMAIL_TOO_LONG);
         }
-
         // Email format check:
         // matches() compares the cleanEmail text with this pattern (a regex),
         // to make sure that it fits the standard email pattern.
         if (!cleanEmail.matches("^[^@\\s]+@[^@\\s.]+(\\.[^@\\s.]+)+$")) {
             throw new InvalidInputException(EMAIL_INVALID);
         }
-
         if (password == null || password.isEmpty()) {
             throw new InvalidInputException(PASSWORD_REQUIRED);
         }
@@ -107,17 +121,16 @@ public class UserService {
             throw new InvalidInputException(PASSWORD_TOO_SHORT);
         }
 
-
         // 3. Is the email already taken?
         // findByEmail returns an Optional, and isPresent() is true if a user was found
-        if (repository.findByEmail(cleanEmail).isPresent()) {
+        if (userRepository.findByEmailNick(cleanEmail).isPresent()) {
             throw new InvalidInputException(EMAIL_TAKEN);
         }
 
 
         // 4. Turn the plain password into a BCrypt hash.
         // From here on only the hash is used, and the plain password is never saved
-        String passwordHash =  passwordEncoder.encode(password);
+        String passwordHash = passwordEncoder.encode(password);
 
 
         // 5. Save the user.
@@ -127,7 +140,7 @@ public class UserService {
         // The UNIQUE rule in the database then rejects the second INSERT with a
         // DataIntegrityViolationException - we catch it and show the error message
         try {
-            repository.save(cleanName, cleanEmail, passwordHash);
+            userRepository.save(cleanName, cleanEmail, passwordHash);
         } catch (DataIntegrityViolationException ex) {
             throw new InvalidInputException(EMAIL_TAKEN);
         }

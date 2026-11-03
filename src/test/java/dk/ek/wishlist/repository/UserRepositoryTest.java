@@ -1,44 +1,48 @@
 package dk.ek.wishlist.repository;
 
+import dk.ek.wishlist.model.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Transactional
-@Sql(scripts = "/schema.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@Sql("/h2init.sql")
 class UserRepositoryTest {
+
     @Autowired
-    UserRepository repository;
+    private UserRepository userRepository;
 
     @Test
-    void save_thenFindByEmail_returnsTheUser() {
-        repository.save("Anna", "anna@mail.dk", "hash");
+    void shouldGetUserByEmail() {
+        // Act
+        User user = userRepository.findByEmail("ejer@test.dk");
 
-        var found = repository.findByEmail("anna@mail.dk");
-
-        assertTrue(found.isPresent());
-        assertEquals("Anna", found.get().getName());
-        assertEquals("hash", found.get().getPasswordHash());
+        // Assert
+        assertNotNull(user);
+        assertEquals("Test Ejer", user.getName());
+        assertEquals("hash", user.getPasswordHash());
     }
 
     @Test
-    void findByEmail_unknownEmail_returnsEmpty() {
-        assertTrue(repository.findByEmail("ingen@mail.dk").isEmpty());
+    void shouldReturnNullWhenEmailDoesNotExist() {
+        // Act
+        User user = userRepository.findByEmail("isak@test.dk");
+
+        // Assert
+        assertNull(user);
     }
 
     @Test
-    void save_duplicateEmail_throws() {
-        repository.save("Anna", "dup@mail.dk", "hash");
+    void shouldReturnNullWhenEmailIsAnEmptyString() {
+        // Act
+        User user = userRepository.findByEmail("");
 
-        assertThrows(DataIntegrityViolationException.class,
-                () -> repository.save("Anna 2", "dup@mail.dk", "hash2"));
+        // Assert
+        assertNull(user);
     }
 }

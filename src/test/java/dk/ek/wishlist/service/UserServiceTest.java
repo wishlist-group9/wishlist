@@ -7,8 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -26,6 +29,8 @@ import static org.mockito.ArgumentCaptor.forClass;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
+    @Spy
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     @Mock
     UserRepository repository;
     @InjectMocks
@@ -33,7 +38,7 @@ class UserServiceTest {
 
     @Test
     void register_validInput_savesUserWithHashedPassword() {
-        when(repository.findByEmail("anna@mail.dk")).thenReturn(Optional.empty());
+        when(repository.findByEmailNick("anna@mail.dk")).thenReturn(Optional.empty());
 
         service.register("  Anna  ", "  ANNA@Mail.dk ", "hunter22");
 
@@ -96,7 +101,7 @@ class UserServiceTest {
     @Test
     void register_emailAlreadyTaken_throwsAndDoesNotSave() {
         var existing = new User(1, "Anna", "anna@mail.dk", "hash");
-        when(repository.findByEmail("anna@mail.dk")).thenReturn(Optional.of(existing));
+        when(repository.findByEmailNick("anna@mail.dk")).thenReturn(Optional.of(existing));
 
         var ex = assertThrows(InvalidInputException.class,
                 () -> service.register("Anna 2", "anna@mail.dk", "hunter22"));
@@ -106,7 +111,7 @@ class UserServiceTest {
 
     @Test
     void register_databaseRejectsDuplicate_throwsEmailTaken() {
-        when(repository.findByEmail("anna@mail.dk")).thenReturn(Optional.empty());
+        when(repository.findByEmailNick("anna@mail.dk")).thenReturn(Optional.empty());
         doThrow(new DataIntegrityViolationException("duplicate"))
                 .when(repository).save(eq("Anna"), eq("anna@mail.dk"), any());
 
