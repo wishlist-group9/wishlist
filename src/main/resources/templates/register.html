@@ -29,15 +29,21 @@
                 <p>Så kan du skrive ønskesedler og dele dem med familie og venner.</p>
             </div>
 
+            <!-- NY  Error message from the controller-->
+            <p class="form-error" role="alert" th:if="${error}" th:text="${error}">Skriv dit navn.</p>
+
+
             <label class="field">
                 Navn
-                <input class="input" type="text" name="name" autocomplete="name" required>
+                <!-- NY: th:value keeps the typed name after an error -->
+                <input class="input" type="text" name="name" autocomplete="name" required th:value="${name}">
             </label>
 
             <div class="field">
                 <label for="email">E-mail</label>
+                <!-- NY: th:value keeps the typed email after an error -->
                 <input class="input" id="email" type="email" name="email" autocomplete="email" required
-                       placeholder="dig@eksempel.dk"
+                       placeholder="dig@eksempel.dk" th:value="${email}"
                        th:attr="aria-invalid=${emailError != null} ? 'true' : null, aria-describedby=${emailError != null} ? 'email-error' : null">
                 <span class="field-error" id="email-error" th:if="${emailError}">
                     <span th:text="${emailError}">Den e-mail er allerede i brug.</span>

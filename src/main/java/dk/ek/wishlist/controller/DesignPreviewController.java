@@ -33,21 +33,6 @@ public class DesignPreviewController {
         return "redirect:/letters";
     }
 
-    /** /register?error shows how a field error looks. */
-    @GetMapping("/register")
-    public String register(@RequestParam(name = "error", required = false) String error, Model model) {
-        if (error != null) {
-            model.addAttribute("emailError", "Den e-mail er allerede i brug.");
-        }
-        return "register";
-    }
-
-    @PostMapping("/register")
-    public String fakeRegister(RedirectAttributes redirect) {
-        redirect.addFlashAttribute(FLASH, "Velkommen! Din konto er oprettet.");
-        return "redirect:/letters";
-    }
-
     @PostMapping("/logout")
     public String logout() {
         return "redirect:/login";

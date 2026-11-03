@@ -39,23 +39,6 @@ class DesignPreviewControllerTest {
                 .andExpect(redirectedUrl("/letters"));
     }
 
-    @Test
-    void registerPage_rendersAndShowsFieldError() throws Exception {
-        mockMvc.perform(get("/register"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("register"))
-                .andExpect(content().string(containsString("Opret en konto")))
-                .andExpect(content().string(not(containsString("allerede i brug"))));
-        mockMvc.perform(get("/register").param("error", ""))
-                .andExpect(content().string(containsString("Den e-mail er allerede i brug")));
-    }
-
-    @Test
-    void register_redirectsWithWelcome() throws Exception {
-        mockMvc.perform(post("/register"))
-                .andExpect(redirectedUrl("/letters"))
-                .andExpect(flash().attribute("flash", "Velkommen! Din konto er oprettet."));
-    }
 
     @Test
     void logout_redirectsToLogin() throws Exception {
