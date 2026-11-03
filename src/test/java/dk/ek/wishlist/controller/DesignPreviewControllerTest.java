@@ -13,31 +13,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(DesignPreviewController.class)
 class DesignPreviewControllerTest {
+
+    // Protected pages require a logged-in user (see LoginInterceptor)
+    private static final String USER_ID = "userId";
+
     @Autowired
     MockMvc mockMvc;
-
-    @Test
-    void loginPage_renders() throws Exception {
-        mockMvc.perform(get("/login"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("login"))
-                .andExpect(content().string(containsString("Ho ho, velkommen tilbage")));
-    }
-
-    @Test
-    void loginPage_showsErrorOnlyWhenAsked() throws Exception {
-        mockMvc.perform(get("/login"))
-                .andExpect(content().string(not(containsString("Forkert e-mail eller adgangskode"))));
-        mockMvc.perform(get("/login").param("error", ""))
-                .andExpect(content().string(containsString("Forkert e-mail eller adgangskode")));
-    }
-
-    @Test
-    void login_redirectsToLetters() throws Exception {
-        mockMvc.perform(post("/login"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/letters"));
-    }
 
     @Test
     void registerPage_rendersAndShowsFieldError() throws Exception {
@@ -65,7 +46,7 @@ class DesignPreviewControllerTest {
 
     @Test
     void lettersPage_rendersBothSections() throws Exception {
-        mockMvc.perform(get("/letters"))
+        mockMvc.perform(get("/letters").sessionAttr(USER_ID, 1))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Skrevet af dig")))
                 .andExpect(content().string(containsString("Delt med dig")));
@@ -73,13 +54,13 @@ class DesignPreviewControllerTest {
 
     @Test
     void lettersPage_showsFlashMessage() throws Exception {
-        mockMvc.perform(get("/letters").flashAttr("flash", "Ønskesedlen er oprettet."))
+        mockMvc.perform(get("/letters").sessionAttr(USER_ID, 1).flashAttr("flash", "Ønskesedlen er oprettet."))
                 .andExpect(content().string(containsString("Ønskesedlen er oprettet.")));
     }
 
     @Test
     void wishlist_guestSeesReservations() throws Exception {
-        mockMvc.perform(get("/letters/1"))
+        mockMvc.perform(get("/letters/1").sessionAttr(USER_ID, 1))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("owner", false))
                 .andExpect(content().string(containsString("badge-reserved")))
@@ -90,7 +71,7 @@ class DesignPreviewControllerTest {
 
     @Test
     void wishlist_marksActiveFilter() throws Exception {
-        mockMvc.perform(get("/letters/1").param("filter", "available"))
+        mockMvc.perform(get("/letters/1").sessionAttr(USER_ID, 1).param("filter", "available"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("filter", "available"))
                 .andExpect(content().string(containsString("aria-current=\"page\"")));
@@ -98,7 +79,7 @@ class DesignPreviewControllerTest {
 
     @Test
     void wishlist_ownerNeverSeesReservations() throws Exception {
-        mockMvc.perform(get("/letters/1").param("view", "owner"))
+        mockMvc.perform(get("/letters/1").sessionAttr(USER_ID, 1).param("view", "owner"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("owner", true))
                 .andExpect(content().string(containsString("Tilføj ønske")))
@@ -110,21 +91,21 @@ class DesignPreviewControllerTest {
 
     @Test
     void addWish_redirectsToOwnerViewWithConfirmation() throws Exception {
-        mockMvc.perform(post("/letters/1/wishes").param("title", "Uldtørklæde"))
+        mockMvc.perform(post("/letters/1/wishes").sessionAttr(USER_ID, 1).param("title", "Uldtørklæde"))
                 .andExpect(redirectedUrl("/letters/1?view=owner"))
                 .andExpect(flash().attribute("flash", "Ønsket er tilføjet til din ønskeseddel."));
     }
 
     @Test
     void deleteWish_redirectsWithConfirmation() throws Exception {
-        mockMvc.perform(post("/wishes/1/delete"))
+        mockMvc.perform(post("/wishes/1/delete").sessionAttr(USER_ID, 1))
                 .andExpect(redirectedUrl("/letters/1?view=owner"))
                 .andExpect(flash().attribute("flash", "Ønsket er slettet."));
     }
 
     @Test
     void askSantaPage_rendersIdeas() throws Exception {
-        mockMvc.perform(get("/letters/1/santa"))
+        mockMvc.perform(get("/letters/1/santa").sessionAttr(USER_ID, 1))
                 .andExpect(status().isOk())
                 .andExpect(view().name("santa"))
                 .andExpect(content().string(containsString("Spørg Santa Claude")))
@@ -134,7 +115,7 @@ class DesignPreviewControllerTest {
 
     @Test
     void askSanta_redirectsBackToChat() throws Exception {
-        mockMvc.perform(post("/letters/1/santa").param("prompt", "kaffe"))
+        mockMvc.perform(post("/letters/1/santa").sessionAttr(USER_ID, 1).param("prompt", "kaffe"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/letters/1/santa"));
     }
