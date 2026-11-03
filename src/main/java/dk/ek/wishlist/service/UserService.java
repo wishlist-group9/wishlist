@@ -96,7 +96,7 @@ public class UserService {
         // Email format check:
         // matches() compares the cleanEmail text with this pattern (a regex),
         // to make sure that it fits the standard email pattern.
-        if (!cleanEmail.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+        if (!cleanEmail.matches("^[^@\\s]+@[^@\\s.]+(\\.[^@\\s.]+)+$")) {
             throw new InvalidInputException(EMAIL_INVALID);
         }
 
