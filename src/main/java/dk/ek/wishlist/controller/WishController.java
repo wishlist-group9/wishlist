@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import dk.ek.wishlist.exception.InvalidInputException;
 
 /**
  * Handles requests for wishes
@@ -34,7 +35,7 @@ public class WishController {
      * @param redirectAttributes used to display messages after redirecting
      * @return a redirect to the wishlist page
      */
-    @PostMapping("/wishlists{wishlistId}/wishes")
+    @PostMapping("/wishlists/{wishlistId}/wishes")
     public String createWish(
             @PathVariable int wishlistId,
             @ModelAttribute Wish wish,
@@ -58,7 +59,7 @@ public class WishController {
             redirectAttributes.addFlashAttribute(
                     "flash", "Ønsket blev oprettet."
             );
-        } catch (IllegalArgumentException e) {
+        } catch (InvalidInputException e) {
             redirectAttributes.addFlashAttribute(
                     "errorMessage", e.getMessage()
             );
