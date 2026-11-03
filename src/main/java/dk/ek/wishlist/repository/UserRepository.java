@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/** Reads users from the app_user table. */
 @Repository
 public class UserRepository {
 
@@ -22,6 +23,12 @@ public class UserRepository {
             new User(rs.getInt("id"), rs.getString("name"), rs.getString("email"), rs.getString("password_hash"));
 
 
+    /**
+     * Finds the user with the given e-mail.
+     *
+     * @param email the e-mail to look for; must match exactly
+     * @return the user, or {@code null} if no user has that e-mail
+     */
     public User findByEmail(String email) {
         String sql = "SELECT id, name, email, password_hash FROM app_user WHERE email = ?";
         List<User> result = jdbcTemplate.query(sql, userRowMapper, email);

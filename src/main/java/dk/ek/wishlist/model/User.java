@@ -1,5 +1,6 @@
 package dk.ek.wishlist.model;
 
+/** A user who can log in and own wishlists. Matches one row in the app_user table. */
 public class User {
     // Attributes
     private Integer id;

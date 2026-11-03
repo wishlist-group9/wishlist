@@ -6,6 +6,10 @@ import dk.ek.wishlist.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+/**
+ * Business rules for users: checks login details against the stored
+ * password hash from {@link UserRepository}.
+ */
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -18,6 +22,17 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Checks the e-mail and password and returns the matching user.
+     * <p>
+     * The same error is used for an unknown e-mail and a wrong password, so the
+     * message doesn't reveal which e-mails have an account.
+     *
+     * @param email       the e-mail the user typed
+     * @param rawPassword the password the user typed, in plain text
+     * @return the logged-in user
+     * @throws InvalidLoginException if no user has that e-mail, or the password doesn't match
+     */
     public User login(String email, String rawPassword) {
         User user = userRepository.findByEmail(email);
 
