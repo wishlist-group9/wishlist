@@ -22,20 +22,7 @@ public class DesignPreviewController {
     private static final String FLASH = "flash";
     private static final String OWNER_VIEW = "redirect:/letters/1?view=owner";
 
-    /** /register?error shows how a field error looks. */
-    @GetMapping("/register")
-    public String register(@RequestParam(name = "error", required = false) String error, Model model) {
-        if (error != null) {
-            model.addAttribute("emailError", "Den e-mail er allerede i brug.");
-        }
-        return "register";
-    }
 
-    @PostMapping("/register")
-    public String fakeRegister(RedirectAttributes redirect) {
-        redirect.addFlashAttribute(FLASH, "Velkommen! Din konto er oprettet.");
-        return "redirect:/letters";
-    }
 
     @PostMapping("/logout")
     public String logout() {
@@ -47,6 +34,11 @@ public class DesignPreviewController {
         return "letters";
     }
 
+    @PostMapping("/letters")
+    public String fakeCreateLetter(RedirectAttributes redirect) {
+        redirect.addFlashAttribute(FLASH, "Ønskesedlen er oprettet.");
+        return "redirect:/letters";
+    }
 
     /**
      * /letters/1 shows the guest view, /letters/1?view=owner the owner view.
