@@ -19,13 +19,6 @@ class DesignPreviewControllerTest {
     @Autowired
     MockMvc mockMvc;
 
-
-    @Test
-    void logout_redirectsToLogin() throws Exception {
-        mockMvc.perform(post("/logout"))
-                .andExpect(redirectedUrl("/login"));
-    }
-
     @Test
     void lettersPage_rendersBothSections() throws Exception {
         mockMvc.perform(get("/letters").sessionAttr(USER_ID, 1))

@@ -22,13 +22,6 @@ public class DesignPreviewController {
     private static final String FLASH = "flash";
     private static final String OWNER_VIEW = "redirect:/wishlists/1";
 
-
-
-    @PostMapping("/logout")
-    public String logout() {
-        return "redirect:/login";
-    }
-
     @GetMapping("/letters")
     public String letters() {
         return "letters";
