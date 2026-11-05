@@ -117,13 +117,17 @@
     </form>
 </div>
 
-<!-- "Are you sure?" before deleting a wish (owner only) -->
-<div th:fragment="delete-wish" id="delete-wish" class="modal">
+<!--
+    "Are you sure?" before deleting a wish (owner only)
+    action: where the form is sent, /wishlists/{id}/wishes/{wishId}/delete
+    title:  the wish title shown in the question
+-->
+<div th:fragment="delete-wish(action, title)" id="delete-wish" class="modal">
     <form class="modal-box" role="alertdialog" aria-modal="true" aria-labelledby="delete-wish-title"
-          aria-describedby="delete-wish-text" method="post" th:action="@{/wishes/{id}/delete(id=1)}">
+          aria-describedby="delete-wish-text" method="post" th:action="${action}">
         <h2 id="delete-wish-title" class="modal-title">Slet ønsket?</h2>
         <p id="delete-wish-text" class="modal-text">
-            <strong>Støjreducerende høretelefoner</strong> bliver fjernet fra din ønskeseddel.
+            <strong th:text="${title}">Støjreducerende høretelefoner</strong> bliver fjernet fra din ønskeseddel.
             Det kan ikke fortrydes.
         </p>
         <div class="form-actions">

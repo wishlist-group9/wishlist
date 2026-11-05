@@ -115,7 +115,7 @@
 <th:block th:if="${owner}">
     <div th:replace="~{fragments/modals :: wish-form('add-wish', 'Tilføj et ønske', @{/wishlists/{id}/wishes(id=${wishlistId})}, 'Tilføj ønske', true, '', '', '', '', 'play', false, '')}"></div>
     <div th:replace="~{fragments/modals :: wish-form('edit-wish', 'Redigér ønske', @{/wishes/1}, 'Gem ændringer', false, 'Støjreducerende høretelefoner', '2499', 'Proshop', 'https://www.proshop.dk', 'tech', true, 'Over-ear, sort eller grå. Til toget og lange læsedage.')}"></div>
-    <div th:replace="~{fragments/modals :: delete-wish}"></div>
+    <div th:replace="~{fragments/modals :: delete-wish(@{/wishlists/{id}/wishes/{wishId}/delete(id=${wishlistId}, wishId=1)}, 'Støjreducerende høretelefoner')}"></div>
     <div th:replace="~{fragments/modals :: edit-letter(1, 'Jul 2026')}"></div>
 </th:block>
 
