@@ -52,7 +52,7 @@ class WishControllerTest{
                 .param("link", "https://example.com")
                 .param("price", "149.95"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/letters/3?view=owner"))
+                .andExpect(redirectedUrl("/wishlists/3"))
                 .andExpect(flash().attribute(
                         "flash", "Ønsket blev oprettet."
                 ));
@@ -94,7 +94,7 @@ class WishControllerTest{
         mockMvc.perform(post("/wishlists/3/wishes")
                         .param("title", "   "))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/letters/3?view=owner"))
+                .andExpect(redirectedUrl("/wishlists/3"))
                 .andExpect(flash().attribute(
                         "errorMessage", "Ønsket skal have en titel."
                 ))
@@ -110,7 +110,7 @@ class WishControllerTest{
                         .param("title", "En bog")
                         .param("price", "hej"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/letters/3?view=owner"))
+                .andExpect(redirectedUrl("/wishlists/3"))
                 .andExpect(flash().attribute(
                         "errorMessage",
                         "Kontrollér de indtastede oplysninger."

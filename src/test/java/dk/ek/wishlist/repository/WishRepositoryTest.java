@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -126,6 +127,31 @@ class WishRepositoryTest {
         );
 
         assertEquals(Integer.valueOf(0), count);
+    }
+
+    @Test
+    void findByWishlistId_returnsOnlyThatListsWishes_oldestFirst() {
+        //Arrange: Two wishes on list 1 and one on list 2
+        repository.save(new Wish(0, 1, "Bog", null, null, null));
+        repository.save(new Wish(0, 2, "Fra en anden liste", null, null, null));
+        repository.save(new Wish(0, 1, "Hue", "Grøn", "https://example.com", 300.0));
+
+        //Act
+        List<Wish> wishes = repository.findByWishlistId(1);
+
+        //Assert: Only list 1's wishes, in the order they were added, with all values
+        assertEquals(2, wishes.size());
+        assertEquals("Bog", wishes.get(0).getTitle());
+        assertNull(wishes.get(0).getPrice());
+        assertEquals("Hue", wishes.get(1).getTitle());
+        assertEquals("Grøn", wishes.get(1).getDescription());
+        assertEquals("https://example.com", wishes.get(1).getLink());
+        assertEquals(300.0, wishes.get(1).getPrice(), 0.001);
+    }
+
+    @Test
+    void findByWishlistId_noWishes_returnsEmptyList() {
+        assertTrue(repository.findByWishlistId(1).isEmpty());
     }
 
     @Test

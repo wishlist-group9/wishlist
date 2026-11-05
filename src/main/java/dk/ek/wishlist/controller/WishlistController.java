@@ -1,11 +1,16 @@
 package dk.ek.wishlist.controller;
 
 import dk.ek.wishlist.exception.InvalidInputException;
+import dk.ek.wishlist.model.Wishlist;
+import dk.ek.wishlist.service.WishService;
 import dk.ek.wishlist.service.WishlistService;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.SessionAttribute;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
@@ -23,9 +28,36 @@ public class WishlistController {
     static final String RENAMED = "Navnet er ændret.";
 
     private final WishlistService wishlistService;
+    private final WishService wishService;
 
-    public WishlistController(WishlistService wishlistService) {
+    public WishlistController(WishlistService wishlistService, WishService wishService) {
         this.wishlistService = wishlistService;
+        this.wishService = wishService;
+    }
+
+    /**
+     * Shows a wishlist the logged-in user owns or that is shared with them, with all its wishes.
+     * The owner gets the owner view (add and edit); everyone else gets the guest view.
+     *
+     * @param id     id of the wishlist, from the URL
+     * @param userId id of the logged-in user, or {@code null} if nobody is logged in
+     * @param model  receives the wishlist, its wishes and whether the user owns it
+     * @return the wishlist page, or a redirect to login
+     * @throws dk.ek.wishlist.exception.NotFoundException shown as the 404 page if the list
+     *         doesn't exist or the user may not see it
+     */
+    @GetMapping("/wishlists/{id}")
+    public String show(@PathVariable int id,
+                       @SessionAttribute(name = "userId", required = false) Integer userId,
+                       Model model) {
+        if (userId == null) {
+            return "redirect:/login";
+        }
+        Wishlist wishlist = wishlistService.getVisibleWishlist(userId, id);
+        model.addAttribute("wishlist", wishlist);
+        model.addAttribute("wishes", wishService.getWishes(id));
+        model.addAttribute("owner", wishlist.getUserId() == userId);
+        return "wishlist";
     }
 
     /**
@@ -59,7 +91,7 @@ public class WishlistController {
     @PostMapping("/wishlists/{id}/title")
     public String rename(@PathVariable int id, @RequestParam(defaultValue = "") String title,
                          RedirectAttributes redirect) {
-        String listPage = "redirect:/letters/" + id + "?view=owner";
+        String listPage = "redirect:/wishlists/" + id;
         try {
             wishlistService.rename(DEMO_USER_ID, id, title);
             redirect.addFlashAttribute("flash", RENAMED);

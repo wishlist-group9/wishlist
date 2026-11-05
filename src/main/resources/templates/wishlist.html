@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="da" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Patricks ønskeseddel')}">
-    <title>Patricks ønskeseddel – Santa Claude</title>
+<head th:replace="~{fragments/layout :: head(${wishlist.title})}">
+    <title>Ønskeseddel – Santa Claude</title>
 </head>
 <!--
     One letter (ønskeseddel). The page reads these from the model:
-      owner = true  -> the logged-in user wrote this letter: can add, edit and delete wishes,
+      wishlist      -> the Wishlist (id, title, ...)
+      wishes        -> its wishes, oldest first (an empty list when there are none)
+      owner = true  -> the logged-in user wrote this letter: can add and edit wishes,
                        never sees reservations
-      owner = false -> a guest: can reserve wishes and sees what is already reserved
-      filter        -> 'all', 'available' or 'reserved' (which filter button is active)
-      flash         -> optional confirmation after a save ("Ønsket er tilføjet …")
+      owner = false -> the letter is shared with the user: can reserve wishes
+      flash         -> optional confirmation after a save ("Ønsket blev oprettet.")
+      errorMessage  -> optional error after a failed save
 -->
-<body th:with="owner=${owner} ?: false, filter=${filter} ?: 'all'">
+<body th:with="owner=${owner} ?: false">
 
 <div class="sky">
     <svg th:replace="~{fragments/layout :: sky-decor}"></svg>
@@ -20,23 +22,11 @@
     <section class="container hero">
         <div class="hero-text">
             <a class="back-link" href="/letters" th:href="@{/letters}">← Dine ønskesedler</a>
-            <div class="hero-owner">
-                <span class="avatar" aria-hidden="true">P</span>
-                <span>Patrick Clemmensen · Jul 2026</span>
-            </div>
-            <h1 class="hero-title">Patricks ønskeseddel</h1>
+            <h1 class="hero-title" th:text="${wishlist.title}">Ønskeseddel</h1>
             <p class="hero-lead">Små ting, store ting – alt er frivilligt. Reservér et ønske, så ingen køber den samme gave to gange.</p>
         </div>
 
         <div class="hero-side">
-            <div class="sleigh-progress" th:unless="${owner}">
-                <div class="sleigh-progress-label">
-                    <span>3 af 9 ønsker er reserveret</span>
-                    <span>6 tilbage</span>
-                </div>
-                <progress class="progress" value="3" max="9">3 af 9</progress>
-            </div>
-
             <p class="hero-note" th:if="${owner}">
                 <svg th:replace="~{fragments/icons :: eye-off}"></svg>
                 Ingen kiggen: Du kan ikke se, hvad der er reserveret, så overraskelsen holder.
@@ -48,7 +38,7 @@
                     Tilføj ønske
                 </a>
                 <a class="btn btn-snow" href="#edit-letter" th:if="${owner}">Redigér navn</a>
-                <details class="share">
+                <details class="share" th:if="${owner}">
                     <summary class="btn btn-snow">
                         <svg th:replace="~{fragments/icons :: link}"></svg>
                         Del ønskeseddel
@@ -79,12 +69,8 @@
     </p>
 
     <section class="toolbar" aria-label="Filtrér og sortér">
-        <ul class="chips" th:unless="${owner}" aria-label="Vis">
-            <li><a class="chip" href="?filter=all" th:attr="aria-current=${filter == 'all'} ? 'page' : null">Alle <span class="count">9</span></a></li>
-            <li><a class="chip" href="?filter=available" th:attr="aria-current=${filter == 'available'} ? 'page' : null">Ledige <span class="count">6</span></a></li>
-            <li><a class="chip" href="?filter=reserved" th:attr="aria-current=${filter == 'reserved'} ? 'page' : null">Reserverede <span class="count">3</span></a></li>
-        </ul>
-        <strong th:if="${owner}">9 ønsker på din ønskeseddel</strong>
+        <strong th:if="${owner}" th:text="|${#lists.size(wishes)} ønsker på din ønskeseddel|">0 ønsker</strong>
+        <strong th:unless="${owner}" th:text="|${#lists.size(wishes)} ønsker på ønskesedlen|">0 ønsker</strong>
 
         <form class="sort" method="get">
             <label for="sort">Sortér</label>
@@ -96,27 +82,29 @@
         </form>
     </section>
 
-    <ul class="grid" aria-label="Ønsker">
-        <li><article th:replace="~{fragments/cards :: wish-card(1, 'Støjreducerende høretelefoner', 'Proshop', '2.499 kr.', 'tech', true, 'open')}"></article></li>
-        <li><article th:replace="~{fragments/cards :: wish-card(4, 'Pour over-kaffesæt', 'Illums Bolighus', '449 kr.', 'home', true, 'mine')}"></article></li>
-        <li><article th:replace="~{fragments/cards :: wish-card(2, 'The Pragmatic Programmer, 20th anniversary edition', 'Saxo', '379 kr.', 'book', false, 'open')}"></article></li>
-        <li><article th:replace="~{fragments/cards :: wish-card(3, 'Merinould-hue, skovgrøn', 'Magasin', '300 kr.', 'wear', false, 'taken')}"></article></li>
-        <li><article th:replace="~{fragments/cards :: wish-card(5, 'Brætspil: Wingspan', 'Faraos Cigarer', '449 kr.', 'play', false, 'open')}"></article></li>
-        <li><article th:replace="~{fragments/cards :: wish-card(6, 'Biografbilletter til to', 'Nordisk Film Biografer', '280 kr.', 'play', false, 'taken')}"></article></li>
-        <li><article th:replace="~{fragments/cards :: wish-card(7, 'Termo-løbehandsker', 'Løberen', '249 kr.', 'wear', false, 'open')}"></article></li>
-        <li><article th:replace="~{fragments/cards :: wish-card(8, 'Hørsengetøj, sand', 'Magasin', '899 kr.', 'home', false, 'open')}"></article></li>
-        <li><article th:replace="~{fragments/cards :: wish-card(9, 'Mekanisk tastatur, kompakt', 'Proshop', '1.199 kr.', 'tech', false, 'open')}"></article></li>
+    <ul class="grid" aria-label="Ønsker" th:unless="${#lists.isEmpty(wishes)}">
+        <li th:each="wish : ${wishes}"
+            th:with="price=${wish.price != null ? #numbers.formatDecimal(wish.price, 1, 'POINT', 2, 'COMMA') + ' kr.' : ''}">
+            <article th:replace="~{fragments/cards :: wish-card(${wish.id}, ${wish.title}, ${wish.description}, ${price}, 'play', false, 'open')}"></article>
+        </li>
     </ul>
+
+    <div class="empty-state" th:if="${#lists.isEmpty(wishes)}">
+        <svg th:replace="~{fragments/icons :: gift('?')}"></svg>
+        <p class="empty-state-title">Ho ho … åh nej.</p>
+        <p class="muted" th:if="${owner}">Der er ingen ønsker endnu. Tilføj dit første ønske.</p>
+        <p class="muted" th:unless="${owner}">Der er ingen ønsker på ønskesedlen endnu.</p>
+    </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 
-<div th:replace="~{fragments/modals :: wish-detail}"></div>
+<th:block th:each="wish : ${wishes}">
+    <div th:replace="~{fragments/modals :: wish-detail(${wish})}"></div>
+</th:block>
 <th:block th:if="${owner}">
-    <div th:replace="~{fragments/modals :: wish-form('add-wish', 'Tilføj et ønske', @{/wishlists/{id}/wishes(id=${wishlistId})}, 'Tilføj ønske', true, '', '', '', '', 'play', false, '')}"></div>
-    <div th:replace="~{fragments/modals :: wish-form('edit-wish', 'Redigér ønske', @{/wishes/1}, 'Gem ændringer', false, 'Støjreducerende høretelefoner', '2499', 'Proshop', 'https://www.proshop.dk', 'tech', true, 'Over-ear, sort eller grå. Til toget og lange læsedage.')}"></div>
-    <div th:replace="~{fragments/modals :: delete-wish(@{/wishlists/{id}/wishes/{wishId}/delete(id=${wishlistId}, wishId=1)}, 'Støjreducerende høretelefoner')}"></div>
-    <div th:replace="~{fragments/modals :: edit-letter(1, 'Jul 2026')}"></div>
+    <div th:replace="~{fragments/modals :: wish-form('add-wish', 'Tilføj et ønske', @{/wishlists/{id}/wishes(id=${wishlist.id})}, 'Tilføj ønske', true, '', '', '', '', 'play', false, '')}"></div>
+    <div th:replace="~{fragments/modals :: edit-letter(${wishlist.id}, ${wishlist.title})}"></div>
 </th:block>
 
 </body>

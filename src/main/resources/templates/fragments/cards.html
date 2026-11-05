@@ -22,7 +22,7 @@
             'taken' = reserved by someone else
 -->
 <article th:fragment="wish-card(id, title, shop, price, category, top, status)" class="wish-card" th:id="|wish-${id}|">
-    <a class="wish-open" href="#wish-detail">
+    <a class="wish-open" href="#wish-detail" th:href="|#wish-detail-${id}|">
         <div class="tile" th:classappend="|tile-${category}${status == 'taken' and !owner ? ' tile-dimmed' : ''}|">
             <svg th:replace="~{fragments/icons :: category(${category})}"></svg>
             <span class="badge badge-top" th:if="${top}">
@@ -72,7 +72,7 @@
     cat1-cat3: categories of the first three wishes ('' when there is no wish)
     dueClass:  pill-soon (under 60 days), pill-later, or pill-none
 -->
-<a th:fragment="letter-card(id, title, meta, cat1, cat2, cat3, due, dueClass)" class="letter-card" href="#" th:href="@{/letters/{id}(id=${id})}">
+<a th:fragment="letter-card(id, title, meta, cat1, cat2, cat3, due, dueClass)" class="letter-card" href="#" th:href="@{/wishlists/{id}(id=${id})}">
     <div class="letter-previews">
         <div th:replace="~{fragments/cards :: preview-tile(${cat1})}"></div>
         <div th:replace="~{fragments/cards :: preview-tile(${cat2})}"></div>
@@ -110,7 +110,7 @@
 </article>
 
 <!-- A letter someone shared with you -->
-<a th:fragment="shared-letter-card(id, initial, avatarClass, title, meta, reserved, total, mine)" class="letter-card letter-card-shared" href="#" th:href="@{/letters/{id}(id=${id})}">
+<a th:fragment="shared-letter-card(id, initial, avatarClass, title, meta, reserved, total, mine)" class="letter-card letter-card-shared" href="#" th:href="@{/wishlists/{id}(id=${id})}">
     <div class="letter-owner">
         <span class="avatar" th:classappend="${avatarClass}" aria-hidden="true" th:text="${initial}">S</span>
         <span class="letter-text">

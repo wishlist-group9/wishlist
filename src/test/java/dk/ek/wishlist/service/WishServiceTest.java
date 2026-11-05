@@ -11,6 +11,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -207,4 +209,14 @@ class WishServiceTest{
     }
 
 
+
+    @Test
+    void getWishes_returnsTheRepositorysWishes() {
+        //Arrange: The repository has one wish on list 5
+        List<Wish> wishes = List.of(new Wish(1, 5, "Bog", null, null, null));
+        when(repository.findByWishlistId(5)).thenReturn(wishes);
+
+        //Act and assert: The service passes them on unchanged
+        assertEquals(wishes, service.getWishes(5));
+    }
 }

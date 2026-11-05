@@ -46,7 +46,8 @@ public class WishController {
             redirectAttributes.addFlashAttribute(
                     "errorMessage", "Kontrollér de indtastede oplysninger."
             );
-            return "redirect:/letters/" + wishlistId + "?view=owner";        }
+            return "redirect:/wishlists/" + wishlistId;
+        }
 
         //Assigns the wish to the wishlist identified by the ID in the URL
         wish.setWishlistId(wishlistId);
@@ -71,7 +72,7 @@ public class WishController {
             );
             return "redirect:/letters";
         }
-        return "redirect:/letters/" + wishlistId + "?view=owner";
+        return "redirect:/wishlists/" + wishlistId;
     }
 
     /**
@@ -154,7 +155,7 @@ public class WishController {
         }
 
         redirectAttributes.addFlashAttribute("flash", "Ønsket blev opdateret.");
-        return "redirect:/letters/" + wishlistId + "?view=owner";
+        return "redirect:/wishlists/" + wishlistId;
     }
 
     /**
