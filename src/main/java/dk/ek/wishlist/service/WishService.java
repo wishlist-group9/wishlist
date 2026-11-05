@@ -10,7 +10,7 @@ import dk.ek.wishlist.exception.InvalidInputException;
 import java.util.List;
 
 /**
- * Handles wish validation, creation, listing, retrieval for editing, and updates
+ * Handles wish validation, creation, listing and updates
  */
 @Service
 public class WishService {
@@ -55,26 +55,6 @@ public class WishService {
      */
     public List<Wish> getWishes(int wishlistId) {
         return wishRepository.findByWishlistId(wishlistId);
-    }
-
-    /**
-     * Retrieves an existing wish for editing from the specified wishlist
-     *
-     * @param wishId the id of the wish to retrieve
-     * @param wishlistId the id of the wishlist that contains the wish
-     * @param userId the id of the logged-in user
-     * @return the wish with its current values
-     * @throws NotFoundException if the wishlist does not exist, belongs to another user,
-     *          or does not contain the specified wish
-     */
-    public Wish getWishForEdit(int wishId, int wishlistId, int userId){
-        //Use the same error for missing and inaccessible wishlists
-        if(!wishlistRepository.existsByIdAndUserId(wishlistId, userId)){
-            throw new NotFoundException("Ønskesedlen findes ikke.");
-        }
-        return wishRepository.findByIdAndWishlistId(wishId, wishlistId)
-                .orElseThrow(() ->
-                        new NotFoundException("Ønsket findes ikke på denne ønskeseddel."));
     }
 
     /**

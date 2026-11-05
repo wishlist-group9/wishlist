@@ -6,7 +6,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Handles database operations for wishes
@@ -52,24 +51,6 @@ public class WishRepository {
                 wish.getLink(),
                 wish.getPrice()
         );
-    }
-
-    /**
-     * Finds a wish by its id within the specified wishlist
-     *
-     * @param wishId the id of the wish to find
-     * @param wishlistId the id of the wishlist to search
-     * @return an optional containing the wish if both ids match, or an empty optional
-     */
-    public Optional<Wish> findByIdAndWishlistId(int wishId, int wishlistId){
-        String sql = """
-                SELECT id, wishlist_id, title, description, link, price
-                FROM wish
-                WHERE id = ? AND wishlist_id = ?
-                """;
-
-        return jdbcTemplate.query(sql, WISH_MAPPER, wishId, wishlistId)
-                .stream().findFirst();
     }
 
     /**

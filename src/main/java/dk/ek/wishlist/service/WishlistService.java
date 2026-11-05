@@ -3,8 +3,10 @@ package dk.ek.wishlist.service;
 import dk.ek.wishlist.exception.InvalidInputException;
 import dk.ek.wishlist.exception.NotFoundException;
 import dk.ek.wishlist.model.Wishlist;
+import dk.ek.wishlist.model.WishlistSummary;
 import dk.ek.wishlist.repository.WishlistRepository;
 
+import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 
@@ -94,5 +96,25 @@ public class WishlistService {
             throw new NotFoundException(NOT_FOUND);
         }
         return wishlist;
+    }
+
+    /**
+     * Gets the wishlists the user has written, for the overview page.
+     *
+     * @param userId id of the logged-in user
+     * @return the user's own lists, oldest first
+     */
+    public List<WishlistSummary> getOwnWishlists(int userId) {
+        return repository.findOwnedBy(userId);
+    }
+
+    /**
+     * Gets the wishlists other users have shared with the user, for the overview page.
+     *
+     * @param userId id of the logged-in user
+     * @return the lists shared with the user, oldest first
+     */
+    public List<WishlistSummary> getSharedWishlists(int userId) {
+        return repository.findSharedWith(userId);
     }
 }

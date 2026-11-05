@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -145,7 +146,7 @@ class WishControllerTest{
         mockMvc.perform(post("/wishlists/3/wishes/5/delete")
                         .sessionAttr("userId", 7))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/letters/3?view=owner"))
+                .andExpect(redirectedUrl("/wishlists/3"))
                 .andExpect(flash().attribute("flash", "Ønsket blev slettet."));
 
         //The ids from the URL and the session are passed to the service
@@ -177,5 +178,65 @@ class WishControllerTest{
                         "errorMessage", "Ønsket findes ikke på denne ønskeseddel."
                 ))
                 .andExpect(flash().attributeCount(1));
+    }
+
+    @Test
+    void updateWish_validInput_redirectsToListWithConfirmation() throws Exception {
+        mockMvc.perform(post("/wishlists/3/wishes/5/update")
+                        .sessionAttr("userId", 1)
+                        .param("title", "Uldtørklæde")
+                        .param("price", "249.50"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/wishlists/3"))
+                .andExpect(flash().attribute("flash", "Ønsket blev opdateret."));
+
+        //The ids come from the URL and the user from the session
+        verify(service).updateWish(eq(5), eq(3), eq(1), any(Wish.class));
+    }
+
+    @Test
+    void updateWish_invalidInput_reopensTheModalWithError() throws Exception {
+        doThrow(new InvalidInputException("Ønsket skal have en titel."))
+                .when(service).updateWish(eq(5), eq(3), eq(1), any(Wish.class));
+
+        mockMvc.perform(post("/wishlists/3/wishes/5/update")
+                        .sessionAttr("userId", 1)
+                        .param("title", "   "))
+                .andExpect(redirectedUrl("/wishlists/3#edit-wish-5"))
+                .andExpect(flash().attribute("formError", "Ønsket skal have en titel."))
+                .andExpect(flash().attribute("formErrorFor", "edit-wish-5"));
+    }
+
+    @Test
+    void updateWish_invalidPriceFormat_doesNotCallService() throws Exception {
+        mockMvc.perform(post("/wishlists/3/wishes/5/update")
+                        .sessionAttr("userId", 1)
+                        .param("title", "En bog")
+                        .param("price", "hej"))
+                .andExpect(redirectedUrl("/wishlists/3#edit-wish-5"))
+                .andExpect(flash().attribute("formError", "Kontrollér de indtastede oplysninger."));
+
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void updateWish_notOwnersWish_redirectsToOverviewWithError() throws Exception {
+        doThrow(new NotFoundException("Ønskesedlen findes ikke."))
+                .when(service).updateWish(eq(5), eq(3), eq(2), any(Wish.class));
+
+        mockMvc.perform(post("/wishlists/3/wishes/5/update")
+                        .sessionAttr("userId", 2)
+                        .param("title", "Hacket"))
+                .andExpect(redirectedUrl("/letters"))
+                .andExpect(flash().attribute("errorMessage", "Ønskesedlen findes ikke."));
+    }
+
+    @Test
+    void updateWish_notLoggedIn_redirectsToLogin() throws Exception {
+        mockMvc.perform(post("/wishlists/3/wishes/5/update")
+                        .param("title", "Uldtørklæde"))
+                .andExpect(redirectedUrl("/login"));
+
+        verifyNoInteractions(service);
     }
 }

@@ -20,20 +20,6 @@ class DesignPreviewControllerTest {
     MockMvc mockMvc;
 
     @Test
-    void lettersPage_rendersBothSections() throws Exception {
-        mockMvc.perform(get("/letters").sessionAttr(USER_ID, 1))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Skrevet af dig")))
-                .andExpect(content().string(containsString("Delt med dig")));
-    }
-
-    @Test
-    void lettersPage_showsFlashMessage() throws Exception {
-        mockMvc.perform(get("/letters").sessionAttr(USER_ID, 1).flashAttr("flash", "Ønskesedlen er oprettet."))
-                .andExpect(content().string(containsString("Ønskesedlen er oprettet.")));
-    }
-
-    @Test
     void addWish_redirectsToOwnerViewWithConfirmation() throws Exception {
         mockMvc.perform(post("/letters/1/wishes").sessionAttr(USER_ID, 1).param("title", "Uldtørklæde"))
                 .andExpect(redirectedUrl("/wishlists/1"))

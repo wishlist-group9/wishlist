@@ -3,6 +3,7 @@ package dk.ek.wishlist.service;
 import dk.ek.wishlist.exception.InvalidInputException;
 import dk.ek.wishlist.exception.NotFoundException;
 import dk.ek.wishlist.model.Wishlist;
+import dk.ek.wishlist.model.WishlistSummary;
 import dk.ek.wishlist.repository.WishlistRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -143,5 +144,21 @@ public class WishlistServiceTest {
         when(repository.findById(5)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.getVisibleWishlist(1, 5));
+    }
+
+    @Test
+    void getOwnWishlists_returnsTheRepositorysLists() {
+        List<WishlistSummary> lists = List.of(new WishlistSummary(5, "Jul 2026", "Test Ejer", 2));
+        when(repository.findOwnedBy(1)).thenReturn(lists);
+
+        assertEquals(lists, service.getOwnWishlists(1));
+    }
+
+    @Test
+    void getSharedWishlists_returnsTheRepositorysLists() {
+        List<WishlistSummary> lists = List.of(new WishlistSummary(7, "Mors liste", "Mor", 4));
+        when(repository.findSharedWith(1)).thenReturn(lists);
+
+        assertEquals(lists, service.getSharedWishlists(1));
     }
 }

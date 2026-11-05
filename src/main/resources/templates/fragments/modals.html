@@ -32,8 +32,10 @@
             <p class="muted" th:if="${wish.description}" th:text="${wish.description}">Beskrivelse</p>
             <div class="detail-actions">
                 <button th:unless="${owner}" class="btn btn-primary" type="button">Reservér</button>
-                <a th:if="${owner}" class="btn btn-outline"
-                   th:href="@{/wishlists/{l}/wishes/{w}/edit(l=${wish.wishlistId}, w=${wish.id})}">Redigér</a>
+                <th:block th:if="${owner}">
+                    <a class="btn btn-outline" href="#" th:href="|#edit-wish-${wish.id}|">Redigér</a>
+                    <a class="btn btn-outline" href="#" th:href="|#delete-wish-${wish.id}|">Slet</a>
+                </th:block>
                 <a th:if="${wish.link}" class="btn btn-outline" th:href="${wish.link}" target="_blank" rel="noopener">
                     Gå til butik
                     <svg th:replace="~{fragments/icons :: external}"></svg>
@@ -45,12 +47,15 @@
 
 <!--
     The wish form, used both for adding and for editing a wish.
-    modalId:   'add-wish' or 'edit-wish' (the #link that opens it)
+    modalId:   'add-wish', or 'edit-wish-<id>' for one wish (the #link that opens it)
     heading:   title at the top
     action:    where the form is sent
     submit:    text on the red button
     showHelp:  true shows the "Let Santa Claude help" banner (only when adding)
     the rest:  the current values ('' when adding)
+
+    Errors: when the controller flashes formError, it also flashes formErrorFor = the
+    modalId it belongs to, so only that modal shows the message.
 -->
 <div th:fragment="wish-form(modalId, heading, action, submit, showHelp, title, price, shop, url, category, top, note)"
      th:id="${modalId}" class="modal">
@@ -60,6 +65,7 @@
             <svg th:replace="~{fragments/layout :: icon-close}"></svg>
         </a>
         <h2 class="modal-title" th:id="|${modalId}-title|" th:text="${heading}">Tilføj et ønske</h2>
+        <p class="field-error" role="alert" th:if="${formErrorFor == modalId}" th:text="${formError}">Ønsket skal have en titel.</p>
 
         <a th:if="${showHelp}" class="santa-help" href="/letters/1/santa" th:href="@{/letters/{id}/santa(id=1)}">
             <svg width="34" height="30" viewBox="300 138 90 44" aria-hidden="true">
@@ -117,20 +123,20 @@
 </div>
 
 <!--
-    "Are you sure?" before deleting a wish (owner only)
-    action: where the form is sent, /wishlists/{id}/wishes/{wishId}/delete
-    title:  the wish title shown in the question
+    "Are you sure?" before deleting a wish (owner only). One per wish, opened with #delete-wish-<id>.
+    wish: the wish to delete (its id, wishlistId and title are used)
 -->
-<div th:fragment="delete-wish(action, title)" id="delete-wish" class="modal">
-    <form class="modal-box" role="alertdialog" aria-modal="true" aria-labelledby="delete-wish-title"
-          aria-describedby="delete-wish-text" method="post" th:action="${action}">
-        <h2 id="delete-wish-title" class="modal-title">Slet ønsket?</h2>
-        <p id="delete-wish-text" class="modal-text">
-            <strong th:text="${title}">Støjreducerende høretelefoner</strong> bliver fjernet fra din ønskeseddel.
+<div th:fragment="delete-wish(wish)" th:id="|delete-wish-${wish.id}|" class="modal">
+    <form class="modal-box" role="alertdialog" aria-modal="true"
+          th:attr="aria-labelledby=|delete-wish-title-${wish.id}|, aria-describedby=|delete-wish-text-${wish.id}|"
+          method="post" th:action="@{/wishlists/{l}/wishes/{w}/delete(l=${wish.wishlistId}, w=${wish.id})}">
+        <h2 class="modal-title" th:id="|delete-wish-title-${wish.id}|">Slet ønsket?</h2>
+        <p class="modal-text" th:id="|delete-wish-text-${wish.id}|">
+            <strong th:text="${wish.title}">Støjreducerende høretelefoner</strong> bliver fjernet fra din ønskeseddel.
             Det kan ikke fortrydes.
         </p>
         <div class="form-actions">
-            <a class="btn btn-outline" href="#wish-detail">Annullér</a>
+            <a class="btn btn-outline" href="#" th:href="|#wish-detail-${wish.id}|">Annullér</a>
             <button class="btn btn-primary" type="submit">Slet ønske</button>
         </div>
     </form>

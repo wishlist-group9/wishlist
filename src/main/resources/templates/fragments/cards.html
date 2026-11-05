@@ -68,22 +68,19 @@
 </div>
 
 <!--
-    One of your own letters.
-    cat1-cat3: categories of the first three wishes ('' when there is no wish)
-    dueClass:  pill-soon (under 60 days), pill-later, or pill-none
+    One of your own letters. wishCount = number of wishes on it.
 -->
-<a th:fragment="letter-card(id, title, meta, cat1, cat2, cat3, due, dueClass)" class="letter-card" href="#" th:href="@{/wishlists/{id}(id=${id})}">
+<a th:fragment="letter-card(id, title, wishCount)" class="letter-card" href="#" th:href="@{/wishlists/{id}(id=${id})}">
     <div class="letter-previews">
-        <div th:replace="~{fragments/cards :: preview-tile(${cat1})}"></div>
-        <div th:replace="~{fragments/cards :: preview-tile(${cat2})}"></div>
-        <div th:replace="~{fragments/cards :: preview-tile(${cat3})}"></div>
+        <div th:replace="~{fragments/cards :: preview-tile('')}"></div>
+        <div th:replace="~{fragments/cards :: preview-tile('')}"></div>
+        <div th:replace="~{fragments/cards :: preview-tile('')}"></div>
     </div>
     <div class="letter-text">
         <span class="letter-title" th:text="${title}">Ønskeseddel</span>
-        <span class="letter-meta" th:text="${meta}">Jul · 24. dec. 2026 · 9 ønsker</span>
+        <span class="letter-meta" th:text="${wishCount == 1 ? '1 ønske' : wishCount + ' ønsker'}">0 ønsker</span>
     </div>
     <div class="letter-footer">
-        <span class="pill" th:classappend="${dueClass}" th:text="${due}">52 dage tilbage</span>
         <span>Åbn →</span>
     </div>
 </a>
@@ -109,25 +106,16 @@
     </button>
 </article>
 
-<!-- A letter someone shared with you -->
-<a th:fragment="shared-letter-card(id, initial, avatarClass, title, meta, reserved, total, mine)" class="letter-card letter-card-shared" href="#" th:href="@{/wishlists/{id}(id=${id})}">
+<!-- A letter someone shared with you. ownerName = the name of the person who wrote it. -->
+<a th:fragment="shared-letter-card(id, ownerName, title, wishCount)" class="letter-card letter-card-shared" href="#" th:href="@{/wishlists/{id}(id=${id})}">
     <div class="letter-owner">
-        <span class="avatar" th:classappend="${avatarClass}" aria-hidden="true" th:text="${initial}">S</span>
+        <span class="avatar avatar-pine" aria-hidden="true" th:text="${ownerName.substring(0, 1).toUpperCase()}">S</span>
         <span class="letter-text">
             <span class="letter-title" th:text="${title}">Ønskeseddel</span>
-            <span class="letter-meta" th:text="${meta}">Jul · 24. dec. 2026</span>
+            <span class="letter-meta" th:text="|Fra ${ownerName} · ${wishCount == 1 ? '1 ønske' : wishCount + ' ønsker'}|">Fra Sara · 0 ønsker</span>
         </span>
     </div>
-    <div class="sleigh-progress">
-        <div class="sleigh-progress-label">
-            <span th:text="|${reserved} af ${total} reserveret|">5 af 12 reserveret</span>
-            <span th:text="|${total - reserved} tilbage|">7 tilbage</span>
-        </div>
-        <progress class="progress" th:value="${reserved}" th:max="${total}" th:text="|${reserved} af ${total}|">5 af 12</progress>
-    </div>
     <div class="letter-footer">
-        <span th:if="${mine > 0}" class="pill pill-mine" th:text="|${mine} reserveret af dig|">1 reserveret af dig</span>
-        <span th:if="${mine == 0}" class="muted">Intet reserveret af dig endnu</span>
         <span>Åbn →</span>
     </div>
 </a>

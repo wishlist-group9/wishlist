@@ -7,7 +7,7 @@
     One letter (ønskeseddel). The page reads these from the model:
       wishlist      -> the Wishlist (id, title, ...)
       wishes        -> its wishes, oldest first (an empty list when there are none)
-      owner = true  -> the logged-in user wrote this letter: can add and edit wishes,
+      owner = true  -> the logged-in user wrote this letter: can add, edit and delete wishes,
                        never sees reservations
       owner = false -> the letter is shared with the user: can reserve wishes
       flash         -> optional confirmation after a save ("Ønsket blev oprettet.")
@@ -101,6 +101,10 @@
 
 <th:block th:each="wish : ${wishes}">
     <div th:replace="~{fragments/modals :: wish-detail(${wish})}"></div>
+    <th:block th:if="${owner}">
+        <div th:replace="~{fragments/modals :: wish-form(|edit-wish-${wish.id}|, 'Redigér ønske', @{/wishlists/{l}/wishes/{w}/update(l=${wishlist.id}, w=${wish.id})}, 'Gem ændringer', false, ${wish.title}, ${wish.price}, '', ${wish.link}, 'play', false, ${wish.description})}"></div>
+        <div th:replace="~{fragments/modals :: delete-wish(${wish})}"></div>
+    </th:block>
 </th:block>
 <th:block th:if="${owner}">
     <div th:replace="~{fragments/modals :: wish-form('add-wish', 'Tilføj et ønske', @{/wishlists/{id}/wishes(id=${wishlist.id})}, 'Tilføj ønske', true, '', '', '', '', 'play', false, '')}"></div>
