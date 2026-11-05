@@ -72,6 +72,12 @@
         <p th:replace="~{fragments/layout :: flash(${flash})}"></p>
     </th:block>
 
+    <p class="field-error"
+       role="alert"
+       th:if="${errorMessage}"
+       th:text="${errorMessage}">
+    </p>
+
     <section class="toolbar" aria-label="Filtrér og sortér">
         <ul class="chips" th:unless="${owner}" aria-label="Vis">
             <li><a class="chip" href="?filter=all" th:attr="aria-current=${filter == 'all'} ? 'page' : null">Alle <span class="count">9</span></a></li>
@@ -107,7 +113,7 @@
 
 <div th:replace="~{fragments/modals :: wish-detail}"></div>
 <th:block th:if="${owner}">
-    <div th:replace="~{fragments/modals :: wish-form('add-wish', 'Tilføj et ønske', @{/letters/1/wishes}, 'Tilføj ønske', true, '', '', '', '', 'play', false, '')}"></div>
+    <div th:replace="~{fragments/modals :: wish-form('add-wish', 'Tilføj et ønske', @{/wishlists/{id}/wishes(id=${wishlistId})}, 'Tilføj ønske', true, '', '', '', '', 'play', false, '')}"></div>
     <div th:replace="~{fragments/modals :: wish-form('edit-wish', 'Redigér ønske', @{/wishes/1}, 'Gem ændringer', false, 'Støjreducerende høretelefoner', '2499', 'Proshop', 'https://www.proshop.dk', 'tech', true, 'Over-ear, sort eller grå. Til toget og lange læsedage.')}"></div>
     <div th:replace="~{fragments/modals :: delete-wish}"></div>
     <div th:replace="~{fragments/modals :: edit-letter(1, 'Jul 2026')}"></div>

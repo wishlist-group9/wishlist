@@ -45,9 +45,12 @@ public class DesignPreviewController {
      * ?filter=available|reserved marks that filter button as active.
      */
     @GetMapping("/letters/{id}")
-    public String wishlist(@RequestParam(name = "view", defaultValue = "guest") String view,
-                           @RequestParam(name = "filter", defaultValue = "all") String filter,
+    public String wishlist(
+                            @PathVariable int id,
+                            @RequestParam(name = "view", defaultValue = "guest") String view,
+                            @RequestParam(name = "filter", defaultValue = "all") String filter,
                            Model model) {
+        model.addAttribute("wishlistId", id);
         model.addAttribute("owner", "owner".equals(view));
         model.addAttribute("filter", filter);
         return "wishlist";
