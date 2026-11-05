@@ -32,14 +32,14 @@ public class WishService {
      * Validates a wish and saves it to the database
      *
      * @param wish the wish to create
+     * @param userId the id of the logged in user
      * @throws InvalidInputException if the title is missing or the price is negative
-     * @throws NotFoundException if the wishlist does not exist
+     * @throws NotFoundException if the wishlist does not exist or belongs to another user
      */
-    public void createWish(Wish wish) {
+    public void createWish(Wish wish, int userId) {
        validateWish(wish);
 
-        // Check that the wishlist exists before saving the wish.
-        if (!wishlistRepository.existsById(wish.getWishlistId())) {
+        if (!wishlistRepository.existsByIdAndUserId(wish.getWishlistId(), userId)) {
             throw new NotFoundException("Ønskesedlen findes ikke.");
         }
 
