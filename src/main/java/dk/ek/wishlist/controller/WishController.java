@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import dk.ek.wishlist.exception.InvalidInputException;
 
+
 /**
  * Handles requests for wishes
  */
@@ -153,6 +154,40 @@ public class WishController {
         }
 
         redirectAttributes.addFlashAttribute("flash", "Ønsket blev opdateret.");
+        return "redirect:/letters/" + wishlistId + "?view=owner";
+    }
+
+    /**
+     * Deletes a wish from the user's wishlist
+     * HTML forms can only send GET and POST, so deleting uses post
+     *
+     * @param wishlistId            the id of the wishlist in the URL
+     * @param wishId                the id of the wish to delete
+     * @param userId                the id of the logged-in user, or null if absent
+     * @param redirectAttributes    carries messages across redirects
+     * @return                      a redirect to login if the user is not logged in,
+     *                              to the wishlist overview if the wish cannot be deleted,
+     *                              or back to the wishlist after successful delete
+     */
+    @PostMapping("/wishlists/{wishlistId}/wishes/{wishId}/delete")
+    public String deleteWish(
+            @PathVariable int wishlistId,
+            @PathVariable int wishId,
+            @SessionAttribute(name = "userId", required = false) Integer userId,
+            RedirectAttributes redirectAttributes) {
+
+        if (userId == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            wishService.deleteWish(wishId, wishlistId, userId);
+        } catch (NotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/letters";
+        }
+
+        redirectAttributes.addFlashAttribute("flash", "Ønsket blev slettet.");
         return "redirect:/letters/" + wishlistId + "?view=owner";
     }
 }
