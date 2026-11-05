@@ -7,8 +7,10 @@ import dk.ek.wishlist.repository.WishlistRepository;
 import org.springframework.stereotype.Service;
 import dk.ek.wishlist.exception.InvalidInputException;
 
+import java.util.List;
+
 /**
- * Handles wish validation, creation, retrieval for editing, and updates
+ * Handles wish validation, creation, listing, retrieval for editing, and updates
  */
 @Service
 public class WishService {
@@ -42,6 +44,17 @@ public class WishService {
         }
 
         wishRepository.save(wish);
+    }
+
+    /**
+     * Gets all wishes on a wishlist. Check that the user may see the list
+     * (with {@link WishlistService#getVisibleWishlist}) before calling this.
+     *
+     * @param wishlistId id of the wishlist
+     * @return the wishes, oldest first; an empty list if there are none
+     */
+    public List<Wish> getWishes(int wishlistId) {
+        return wishRepository.findByWishlistId(wishlistId);
     }
 
     /**

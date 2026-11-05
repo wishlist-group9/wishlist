@@ -20,7 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class DesignPreviewController {
 
     private static final String FLASH = "flash";
-    private static final String OWNER_VIEW = "redirect:/letters/1?view=owner";
+    private static final String OWNER_VIEW = "redirect:/wishlists/1";
 
 
 
@@ -38,22 +38,6 @@ public class DesignPreviewController {
     public String fakeCreateLetter(RedirectAttributes redirect) {
         redirect.addFlashAttribute(FLASH, "Ønskesedlen er oprettet.");
         return "redirect:/letters";
-    }
-
-    /**
-     * /letters/1 shows the guest view, /letters/1?view=owner the owner view.
-     * ?filter=available|reserved marks that filter button as active.
-     */
-    @GetMapping("/letters/{id}")
-    public String wishlist(
-                            @PathVariable int id,
-                            @RequestParam(name = "view", defaultValue = "guest") String view,
-                            @RequestParam(name = "filter", defaultValue = "all") String filter,
-                           Model model) {
-        model.addAttribute("wishlistId", id);
-        model.addAttribute("owner", "owner".equals(view));
-        model.addAttribute("filter", filter);
-        return "wishlist";
     }
 
     @PostMapping("/letters/{id}/wishes")

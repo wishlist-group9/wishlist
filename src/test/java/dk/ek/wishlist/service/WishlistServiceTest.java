@@ -2,7 +2,7 @@ package dk.ek.wishlist.service;
 
 import dk.ek.wishlist.exception.InvalidInputException;
 import dk.ek.wishlist.exception.NotFoundException;
-import dk.ek.wishlist.repository.HealthRepository;
+import dk.ek.wishlist.model.Wishlist;
 import dk.ek.wishlist.repository.WishlistRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -107,5 +108,40 @@ public class WishlistServiceTest {
         when(repository.updateTitle(1, 5, "Fødselsdag")).thenReturn(false);
 
         assertThrows(NotFoundException.class, () -> service.rename(1, 5, "Fødselsdag"));
+    }
+
+    @Test
+    void getVisibleWishlist_ownList_returnsItWithoutCheckingShares() {
+        Wishlist list = new Wishlist(5, 1, "Jul 2026", "token-1");
+        when(repository.findById(5)).thenReturn(Optional.of(list));
+
+        assertSame(list, service.getVisibleWishlist(1, 5));
+        verify(repository, never()).isSharedWith(anyInt(), anyInt());
+    }
+
+    @Test
+    void getVisibleWishlist_sharedWithUser_returnsIt() {
+        Wishlist list = new Wishlist(5, 1, "Jul 2026", "token-1");
+        when(repository.findById(5)).thenReturn(Optional.of(list));
+        when(repository.isSharedWith(5, 2)).thenReturn(true);
+
+        assertSame(list, service.getVisibleWishlist(2, 5));
+    }
+
+    @Test
+    void getVisibleWishlist_notOwnedOrShared_throwsNotFound() {
+        when(repository.findById(5)).thenReturn(Optional.of(new Wishlist(5, 1, "Jul 2026", "token-1")));
+        when(repository.isSharedWith(5, 2)).thenReturn(false);
+
+        NotFoundException e = assertThrows(NotFoundException.class,
+                () -> service.getVisibleWishlist(2, 5));
+        assertEquals(WishlistService.NOT_FOUND, e.getMessage());
+    }
+
+    @Test
+    void getVisibleWishlist_unknownId_throwsNotFound() {
+        when(repository.findById(5)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> service.getVisibleWishlist(1, 5));
     }
 }

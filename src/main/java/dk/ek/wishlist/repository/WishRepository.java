@@ -3,7 +3,9 @@ package dk.ek.wishlist.repository;
 import dk.ek.wishlist.model.Wish;
 import org.springframework.stereotype.Repository;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -11,6 +13,16 @@ import java.util.Optional;
  */
 @Repository
 public class WishRepository {
+
+    /** Turns one row from the wish table into a Wish. Shared by every query that reads wishes. */
+    private static final RowMapper<Wish> WISH_MAPPER = (rs, rowNum) -> new Wish(
+            rs.getInt("id"),
+            rs.getInt("wishlist_id"),
+            rs.getString("title"),
+            rs.getString("description"),
+            rs.getString("link"),
+            rs.getObject("price", Double.class)
+    );
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -56,19 +68,25 @@ public class WishRepository {
                 WHERE id = ? AND wishlist_id = ?
                 """;
 
-        return jdbcTemplate.query(
-                sql,
-                (rs, rowNum) -> new Wish(
-                        rs.getInt("id"),
-                        rs.getInt("wishlist_id"),
-                        rs.getString("title"),
-                        rs.getString("description"),
-                        rs.getString("link"),
-                        rs.getObject("price", Double.class)
-                ),
-                wishId,
-                wishlistId
-        ).stream().findFirst();
+        return jdbcTemplate.query(sql, WISH_MAPPER, wishId, wishlistId)
+                .stream().findFirst();
+    }
+
+    /**
+     * Finds all wishes on one wishlist, oldest first.
+     *
+     * @param wishlistId id of the wishlist
+     * @return the wishes on that list; an empty list if it has none
+     */
+    public List<Wish> findByWishlistId(int wishlistId) {
+        String sql = """
+                SELECT id, wishlist_id, title, description, link, price
+                FROM wish
+                WHERE wishlist_id = ?
+                ORDER BY id
+                """;
+
+        return jdbcTemplate.query(sql, WISH_MAPPER, wishlistId);
     }
 
     /**

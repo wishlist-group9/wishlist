@@ -1,5 +1,6 @@
 package dk.ek.wishlist.repository;
 
+import dk.ek.wishlist.model.Wishlist;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class WishlistRepositoryTest {
     private static final int OWNER_ID = 1;   // "Test Ejer" from h2init.sql
     private static final int UNKNOWN_USER_ID = 999;
+    private static final int GUEST_ID = 2;   // "Test Gæst" from h2init.sql
 
     @Autowired
     WishlistRepository repository;
@@ -87,4 +89,35 @@ public class WishlistRepositoryTest {
         assertFalse(repository.updateTitle(1, 999, "Fødselsdag"));
     }
 
+    @Test
+    void findById_existingList_returnsAllValues() {
+        int id = repository.save(OWNER_ID, "Jul 2026", "token-1");
+
+        Wishlist wishlist = repository.findById(id).orElseThrow();
+
+        assertEquals(id, wishlist.getId());
+        assertEquals(OWNER_ID, wishlist.getUserId());
+        assertEquals("Jul 2026", wishlist.getTitle());
+        assertEquals("token-1", wishlist.getShareToken());
+    }
+
+    @Test
+    void findById_unknownId_returnsEmpty() {
+        assertTrue(repository.findById(999).isEmpty());
+    }
+
+    @Test
+    void isSharedWith_sharedUser_returnsTrue() {
+        int id = repository.save(OWNER_ID, "Jul 2026", "token-1");
+        jdbcTemplate.update("INSERT INTO wishlist_share (wishlist_id, user_id) VALUES (?, ?)", id, GUEST_ID);
+
+        assertTrue(repository.isSharedWith(id, GUEST_ID));
+    }
+
+    @Test
+    void isSharedWith_notShared_returnsFalse() {
+        int id = repository.save(OWNER_ID, "Jul 2026", "token-1");
+
+        assertFalse(repository.isSharedWith(id, GUEST_ID));
+    }
 }

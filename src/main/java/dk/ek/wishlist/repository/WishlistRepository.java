@@ -1,11 +1,13 @@
 package dk.ek.wishlist.repository;
 
+import dk.ek.wishlist.model.Wishlist;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
+import java.util.Optional;
 
 /** Reads and writes the wishlist table **/
 
@@ -19,6 +21,10 @@ public class WishlistRepository {
 
     private static final String INSERT_WISHLIST = "INSERT INTO wishlist (user_id, title, share_token) VALUES (?,?,?)";
     private static final String UPDATE_TITLE = "UPDATE wishlist SET title = ? WHERE id = ? AND user_id = ?";
+    private static final String SELECT_BY_ID =
+            "SELECT id, user_id, title, share_token FROM wishlist WHERE id = ?";
+    private static final String IS_SHARED_WITH =
+            "SELECT COUNT(*) FROM wishlist_share WHERE wishlist_id = ? AND user_id = ?";
 
 
     /**
@@ -94,5 +100,32 @@ public class WishlistRepository {
 
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, wishlistId, userId);
         return count !=null && count >0;
+    }
+
+    /**
+     * Finds a wishlist by its id.
+     *
+     * @param wishlistId id of the wishlist
+     * @return the wishlist, or an empty {@code Optional} if no wishlist has that id
+     */
+    public Optional<Wishlist> findById(int wishlistId) {
+        return jdbcTemplate.query(SELECT_BY_ID, (rs, rowNum) -> new Wishlist(
+                rs.getInt("id"),
+                rs.getInt("user_id"),
+                rs.getString("title"),
+                rs.getString("share_token")
+        ), wishlistId).stream().findFirst();
+    }
+
+    /**
+     * Checks whether a wishlist has been shared with a user.
+     *
+     * @param wishlistId id of the wishlist
+     * @param userId     id of the user
+     * @return {@code true} if the user is on the list's share list
+     */
+    public boolean isSharedWith(int wishlistId, int userId) {
+        Integer count = jdbcTemplate.queryForObject(IS_SHARED_WITH, Integer.class, wishlistId, userId);
+        return count != null && count > 0;
     }
 }

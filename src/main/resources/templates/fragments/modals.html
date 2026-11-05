@@ -10,32 +10,31 @@
 -->
 <body>
 
-<!-- Wish details (sample content for the design). Guests can reserve; owners can edit or delete. -->
-<div th:fragment="wish-detail" id="wish-detail" class="modal">
-    <div class="modal-box modal-box-wide" role="dialog" aria-modal="true" aria-labelledby="wish-detail-title">
+<!--
+    Details for one wish. Opened from its card with #wish-detail-<id>.
+    Guests can reserve; the owner can edit.
+-->
+<div th:fragment="wish-detail(wish)" th:id="|wish-detail-${wish.id}|" class="modal">
+    <div class="modal-box modal-box-wide" role="dialog" aria-modal="true"
+         th:attr="aria-labelledby=|wish-detail-title-${wish.id}|">
         <a class="btn btn-icon modal-close" href="#" aria-label="Luk">
             <svg th:replace="~{fragments/layout :: icon-close}"></svg>
         </a>
-        <div class="detail-image tile tile-large tile-tech">
-            <svg th:replace="~{fragments/icons :: category('tech')}"></svg>
+        <div class="detail-image tile tile-large tile-play">
+            <svg th:replace="~{fragments/icons :: category('play')}"></svg>
         </div>
         <div class="detail-body">
             <div class="detail-head">
-                <span class="muted">Proshop</span>
-                <h2 id="wish-detail-title" class="detail-title">Støjreducerende høretelefoner</h2>
-                <span class="detail-price">2.499 kr.</span>
+                <h2 class="detail-title" th:id="|wish-detail-title-${wish.id}|" th:text="${wish.title}">Ønske</h2>
+                <span class="detail-price" th:if="${wish.price != null}"
+                      th:text="|${#numbers.formatDecimal(wish.price, 1, 'POINT', 2, 'COMMA')} kr.|">0 kr.</span>
             </div>
-            <p class="muted">Over-ear, sort eller grå. Til toget og lange læsedage.</p>
-            <dl class="detail-facts">
-                <dt>Prioritet</dt><dd>Øverst på listen</dd>
-            </dl>
+            <p class="muted" th:if="${wish.description}" th:text="${wish.description}">Beskrivelse</p>
             <div class="detail-actions">
                 <button th:unless="${owner}" class="btn btn-primary" type="button">Reservér</button>
-                <th:block th:if="${owner}">
-                    <a class="btn btn-outline" href="#edit-wish">Redigér</a>
-                    <a class="btn btn-outline" href="#delete-wish">Slet</a>
-                </th:block>
-                <a class="btn btn-outline" href="https://www.proshop.dk" target="_blank" rel="noopener">
+                <a th:if="${owner}" class="btn btn-outline"
+                   th:href="@{/wishlists/{l}/wishes/{w}/edit(l=${wish.wishlistId}, w=${wish.id})}">Redigér</a>
+                <a th:if="${wish.link}" class="btn btn-outline" th:href="${wish.link}" target="_blank" rel="noopener">
                     Gå til butik
                     <svg th:replace="~{fragments/icons :: external}"></svg>
                 </a>

@@ -2,6 +2,7 @@ package dk.ek.wishlist.service;
 
 import dk.ek.wishlist.exception.InvalidInputException;
 import dk.ek.wishlist.exception.NotFoundException;
+import dk.ek.wishlist.model.Wishlist;
 import dk.ek.wishlist.repository.WishlistRepository;
 
 import java.util.UUID;
@@ -18,6 +19,7 @@ public class WishlistService {
     static final int MAX_TITLE_LENGTH = 100;   // matches VARCHAR(100) in schema.sql
     static final String TITLE_REQUIRED = "Giv ønskesedlen et navn.";
     static final String TITLE_TOO_LONG = "Navnet må højst være " + MAX_TITLE_LENGTH + " tegn.";
+    static final String NOT_FOUND = "Ønskesedlen findes ikke.";
 
     public WishlistService(WishlistRepository repository) {
         this.repository = repository;
@@ -70,8 +72,27 @@ public class WishlistService {
     public void rename(int userId, int wishlistId, String title) {
         String cleanTitle = cleanTitle(title);
         if (!repository.updateTitle(userId, wishlistId, cleanTitle)) {
-            throw new NotFoundException("Ønskesedlen findes ikke.");
+            throw new NotFoundException(NOT_FOUND);
         }
     }
 
+    /**
+     * Gets a wishlist the user is allowed to see: one they own, or one shared with them.
+     *
+     * @param userId     id of the logged-in user
+     * @param wishlistId id of the wishlist to show
+     * @return the wishlist
+     * @throws NotFoundException if the wishlist doesn't exist, or the user may not see it
+     */
+    public Wishlist getVisibleWishlist(int userId, int wishlistId) {
+        Wishlist wishlist = repository.findById(wishlistId)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND));
+
+        // Same exception for "doesn't exist" and "not allowed", so ids can't be probed
+        boolean isOwner = wishlist.getUserId() == userId;
+        if (!isOwner && !repository.isSharedWith(wishlistId, userId)) {
+            throw new NotFoundException(NOT_FOUND);
+        }
+        return wishlist;
+    }
 }
