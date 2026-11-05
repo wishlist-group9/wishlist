@@ -129,7 +129,9 @@ class WishlistControllerTest {
                 .andExpect(content().string(containsString("id=\"edit-wish-1\"")))
                 .andExpect(content().string(containsString("/wishlists/5/wishes/1/update")))
                 .andExpect(content().string(containsString("id=\"delete-wish-1\"")))
-                .andExpect(content().string(containsString("/wishlists/5/wishes/1/delete")));
+                .andExpect(content().string(containsString("/wishlists/5/wishes/1/delete")))
+                .andExpect(model().attribute("shareLink", "http://localhost/s/token-1"))
+                .andExpect(content().string(containsString("http://localhost/s/token-1")));
     }
 
     @Test
@@ -144,7 +146,8 @@ class WishlistControllerTest {
                 .andExpect(content().string(not(containsString("Tilføj ønske"))))
                 .andExpect(content().string(not(containsString("Redigér navn"))))
                 .andExpect(content().string(not(containsString("edit-wish-1"))))
-                .andExpect(content().string(not(containsString("delete-wish-1"))));
+                .andExpect(content().string(not(containsString("delete-wish-1"))))
+                .andExpect(model().attributeDoesNotExist("shareLink"));
     }
 
     @Test
@@ -220,5 +223,32 @@ class WishlistControllerTest {
                 .andExpect(status().is3xxRedirection());
 
         verifyNoInteractions(wishlistService);
+    }
+
+    @Test
+    void openShareLink_loggedIn_redirectsToTheList() throws Exception {
+        when(wishlistService.openShareLink(2, "token-1")).thenReturn(5);
+
+        mockMvc.perform(get("/s/token-1").sessionAttr("userId", 2))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/wishlists/5"));
+    }
+
+    @Test
+    void openShareLink_notLoggedIn_remembersTokenAndRedirectsToLogin() throws Exception {
+        mockMvc.perform(get("/s/token-1"))
+                .andExpect(redirectedUrl("/login"))
+                .andExpect(request().sessionAttribute(WishlistController.PENDING_SHARE_TOKEN, "token-1"));
+
+        verifyNoInteractions(wishlistService);
+    }
+
+    @Test
+    void openShareLink_unknownToken_returns404() throws Exception {
+        when(wishlistService.openShareLink(2, "findes-ikke"))
+                .thenThrow(new NotFoundException("Ønskesedlen findes ikke."));
+
+        mockMvc.perform(get("/s/findes-ikke").sessionAttr("userId", 2))
+                .andExpect(status().isNotFound());
     }
 }

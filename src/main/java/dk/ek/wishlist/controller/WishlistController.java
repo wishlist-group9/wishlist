@@ -4,6 +4,7 @@ import dk.ek.wishlist.exception.InvalidInputException;
 import dk.ek.wishlist.model.Wishlist;
 import dk.ek.wishlist.service.WishService;
 import dk.ek.wishlist.service.WishlistService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttribute;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
  * Handles requests for wishlists (ønskesedler).
@@ -20,9 +22,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  */
 @Controller
 public class WishlistController {
+    /** Session key for a share link opened before logging in; login sends the user back to it. */
+    static final String PENDING_SHARE_TOKEN = "pendingShareToken";
 
     static final String CREATED = "Ønskesedlen er oprettet.";
     static final String RENAMED = "Navnet er ændret.";
+
 
     private final WishlistService wishlistService;
     private final WishService wishService;
@@ -52,11 +57,12 @@ public class WishlistController {
 
     /**
      * Shows a wishlist the logged-in user owns or that is shared with them, with all its wishes.
-     * The owner gets the owner view (add and edit); everyone else gets the guest view.
+     * The owner gets the owner view (add and edit) and the share link ({@code shareLink});
+     * everyone else gets the guest view.
      *
      * @param id     id of the wishlist, from the URL
      * @param userId id of the logged-in user, or {@code null} if nobody is logged in
-     * @param model  receives the wishlist, its wishes and whether the user owns it
+     * @param model  receives the wishlist, its wishes, whether the user owns it and the share link
      * @return the wishlist page, or a redirect to login
      * @throws dk.ek.wishlist.exception.NotFoundException shown as the 404 page if the list
      *         doesn't exist or the user may not see it
@@ -71,7 +77,18 @@ public class WishlistController {
         Wishlist wishlist = wishlistService.getVisibleWishlist(userId, id);
         model.addAttribute("wishlist", wishlist);
         model.addAttribute("wishes", wishService.getWishes(id));
-        model.addAttribute("owner", wishlist.getUserId() == userId);
+
+        boolean owner = wishlist.getUserId() == userId;
+        model.addAttribute("owner", owner);
+
+        // Only the owner sees the share panel, so only build the link for them
+        if (owner) {
+            String shareLink = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/s/{token}")
+                    .buildAndExpand(wishlist.getShareToken())
+                    .toUriString();
+            model.addAttribute("shareLink", shareLink);
+        }
         return "wishlist";
     }
 
@@ -129,4 +146,26 @@ public class WishlistController {
         }
     }
 
+    /**
+     * Opens a share link. A logged-in user gets access to the list and is sent to it.
+     * A user who isn't logged in is sent to login first; the token is kept in the
+     * session, so login can send them back here.
+     *
+     * @param token   the share token from the link
+     * @param userId  id of the logged-in user, or {@code null} if nobody is logged in
+     * @param session where the token is kept while the user logs in
+     * @return a redirect to the wishlist, or to login
+     * @throws dk.ek.wishlist.exception.NotFoundException shown as the 404 page if the link is unknown
+     */
+    @GetMapping("/s/{token}")
+    public String openShareLink(@PathVariable String token,
+                                @SessionAttribute(name = "userId", required = false) Integer userId,
+                                HttpSession session) {
+        if (userId == null) {
+            session.setAttribute(PENDING_SHARE_TOKEN, token);
+            return "redirect:/login";
+        }
+        int wishlistId = wishlistService.openShareLink(userId, token);
+        return "redirect:/wishlists/" + wishlistId;
+    }
 }

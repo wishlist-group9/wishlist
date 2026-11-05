@@ -168,4 +168,41 @@ public class WishlistRepositoryTest {
 
         assertTrue(repository.findSharedWith(OWNER_ID).isEmpty());
     }
+
+    @Test
+    void findByShareToken_existingToken_returnsTheList() {
+        int id = repository.save(OWNER_ID, "Jul 2026", "token-1");
+
+        Wishlist wishlist = repository.findByShareToken("token-1").orElseThrow();
+
+        assertEquals(id, wishlist.getId());
+        assertEquals(OWNER_ID, wishlist.getUserId());
+        assertEquals("Jul 2026", wishlist.getTitle());
+    }
+
+    @Test
+    void findByShareToken_unknownToken_returnsEmpty() {
+        repository.save(OWNER_ID, "Jul 2026", "token-1");
+
+        assertTrue(repository.findByShareToken("findes-ikke").isEmpty());
+    }
+
+    @Test
+    void addShare_listBecomesVisibleToTheUser() {
+        int id = repository.save(OWNER_ID, "Jul 2026", "token-1");
+
+        repository.addShare(id, GUEST_ID);
+
+        assertTrue(repository.isSharedWith(id, GUEST_ID));
+        assertEquals(1, repository.findSharedWith(GUEST_ID).size());
+    }
+
+    @Test
+    void addShare_sameUserTwice_throws() {
+        int id = repository.save(OWNER_ID, "Jul 2026", "token-1");
+        repository.addShare(id, GUEST_ID);
+
+        assertThrows(DataIntegrityViolationException.class,
+                () -> repository.addShare(id, GUEST_ID));
+    }
 }
