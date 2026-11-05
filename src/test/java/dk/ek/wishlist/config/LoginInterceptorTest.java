@@ -9,6 +9,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Checks the login rule on a protected page. Uses the Santa preview page (/letters/1/santa),
+ * because it needs no services, so the test only depends on LoginInterceptor and WebConfig.
+ */
 @WebMvcTest(DesignPreviewController.class)
 class LoginInterceptorTest {
 
@@ -17,14 +21,14 @@ class LoginInterceptorTest {
 
     @Test
     void shouldRedirectToLoginWhenNotLoggedIn() throws Exception {
-        mockMvc.perform(get("/letters"))
+        mockMvc.perform(get("/letters/1/santa"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
     }
 
     @Test
     void shouldAllowAccessWhenLoggedIn() throws Exception {
-        mockMvc.perform(get("/letters").sessionAttr("userId", 1))
+        mockMvc.perform(get("/letters/1/santa").sessionAttr("userId", 1))
                 .andExpect(status().isOk());
     }
 }

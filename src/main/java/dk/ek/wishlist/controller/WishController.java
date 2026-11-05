@@ -4,7 +4,6 @@ import dk.ek.wishlist.exception.NotFoundException;
 import dk.ek.wishlist.model.Wish;
 import dk.ek.wishlist.service.WishService;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -12,7 +11,7 @@ import dk.ek.wishlist.exception.InvalidInputException;
 
 
 /**
- * Handles requests for wishes
+ * Handles requests for wishes: creating and editing them from the modals on the wishlist page
  */
 @Controller
 public class WishController {
@@ -76,50 +75,18 @@ public class WishController {
     }
 
     /**
-     * Shows the edit form with the current values of the selected wish
-     *
-     * @param wishlistId the id of the selected wishlist
-     * @param wishId the id of the wish to edit
-     * @param userId the ID of the logged-in user, or {@code null} if no user is logged in
-     * @param model used to pass the wish to the edit form
-     * @param redirectAttributes used to display an error after redirecting
-     *@return the edit form, a redirect to login if the user is not logged in,
-     *        or a redirect to the wishlist overview if the wish cannot be edited
-     */
-    @GetMapping("/wishlists/{wishlistId}/wishes/{wishId}/edit")
-    public String showEditWishForm(
-            @PathVariable int wishlistId,
-            @PathVariable int wishId,
-            @SessionAttribute(name = "userId", required = false) Integer userId,
-            Model model,
-            RedirectAttributes redirectAttributes){
-        if(userId == null){
-            return "redirect:/login";
-        }
-        try{
-            Wish wish = wishService.getWishForEdit(wishId, wishlistId, userId);
-            model.addAttribute("wish", wish);
-            model.addAttribute("wishlistId", wishlistId);
-            model.addAttribute("wishId", wishId);
-            return "edit-wish";
-        } catch (NotFoundException e){
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/letters";
-        }
-    }
-
-    /**
-     * Saves the edited values for a wish on the user's wishlist
+     * Saves the edited values for a wish on the user's wishlist. The form is the
+     * "Redigér ønske" modal on the wishlist page (#edit-wish-{wishId}).
      *
      * @param wishlistId the id of the selected wishlist
      * @param wishId the id of the wish to update
      * @param userId the id of the logged in user, or {@code null} if absent
      * @param wish the values submitted in the edit form
-     * @param bindingResult contains form binding and validation errors
-     * @param model supplies the ids when the edit form is shown again
+     * @param bindingResult contains form binding errors, e.g. a price that is not a number
      * @param redirectAttributes carries messages across redirects
-     * @return the edit form on input errors, or a redirect to login,
-     *         the wishlist overview, or the selected wishlist
+     * @return the wishlist page on success, the wishlist page with the edit modal open
+     *         again on invalid input, the overview if the wish cannot be edited,
+     *         or a redirect to login
      */
     @PostMapping("/wishlists/{wishlistId}/wishes/{wishId}/update")
     public String updateWish(
@@ -128,34 +95,36 @@ public class WishController {
             @SessionAttribute(name = "userId", required = false) Integer userId,
             @ModelAttribute("wish") Wish wish,
             BindingResult bindingResult,
-            Model model,
             RedirectAttributes redirectAttributes) {
 
         if (userId == null) {
             return "redirect:/login";
         }
 
-        model.addAttribute("wishlistId", wishlistId);
-        model.addAttribute("wishId", wishId);
+        String listPage = "redirect:/wishlists/" + wishlistId;
+        String editModal = "edit-wish-" + wishId;
+
+        //A value that could not be converted (e.g. price "abc") never reaches the service
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("formError", "Kontrollér de indtastede oplysninger.");
+            redirectAttributes.addFlashAttribute("formErrorFor", editModal);
+            return listPage + "#" + editModal;
+        }
 
         try {
-            if (bindingResult.hasErrors()) {
-                //Check access before showing the form again
-                wishService.getWishForEdit(wishId, wishlistId, userId);
-                return "edit-wish";
-            }
-
             wishService.updateWish(wishId, wishlistId, userId, wish);
         } catch (InvalidInputException e) {
-            bindingResult.reject("wish.invalid", e.getMessage());
-            return "edit-wish";
+            //Open the same modal again with the error inside it
+            redirectAttributes.addFlashAttribute("formError", e.getMessage());
+            redirectAttributes.addFlashAttribute("formErrorFor", editModal);
+            return listPage + "#" + editModal;
         } catch (NotFoundException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/letters";
         }
 
         redirectAttributes.addFlashAttribute("flash", "Ønsket blev opdateret.");
-        return "redirect:/wishlists/" + wishlistId;
+        return listPage;
     }
 
     /**
@@ -189,6 +158,6 @@ public class WishController {
         }
 
         redirectAttributes.addFlashAttribute("flash", "Ønsket blev slettet.");
-        return "redirect:/letters/" + wishlistId + "?view=owner";
+        return "redirect:/wishlists/" + wishlistId;
     }
 }

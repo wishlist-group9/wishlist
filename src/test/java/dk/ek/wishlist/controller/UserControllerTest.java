@@ -46,7 +46,8 @@
                             .param("password", "1234"))
                     .andExpect(status().is3xxRedirection())
                     .andExpect(redirectedUrl("/letters"))
-                    .andExpect(request().sessionAttribute("userId", 1));
+                    .andExpect(request().sessionAttribute("userId", 1))
+                    .andExpect(request().sessionAttribute("userName", "Test Ejer"));
         }
 
         @Test

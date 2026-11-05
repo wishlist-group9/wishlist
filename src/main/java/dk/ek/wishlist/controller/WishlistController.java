@@ -21,9 +21,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class WishlistController {
 
-    /** Temporary owner of new wishlists until login (#59) exists. Matches the demo user in data-dev.sql. */
-    static final int DEMO_USER_ID = 1;
-
     static final String CREATED = "Ønskesedlen er oprettet.";
     static final String RENAMED = "Navnet er ændret.";
 
@@ -33,6 +30,24 @@ public class WishlistController {
     public WishlistController(WishlistService wishlistService, WishService wishService) {
         this.wishlistService = wishlistService;
         this.wishService = wishService;
+    }
+
+    /**
+     * Shows the overview: the user's own wishlists and the ones shared with them.
+     *
+     * @param userId id of the logged-in user, or {@code null} if nobody is logged in
+     * @param model  receives the two lists for the page
+     * @return the overview page, or a redirect to login
+     */
+    @GetMapping("/letters")
+    public String overview(@SessionAttribute(name = "userId", required = false) Integer userId,
+                           Model model) {
+        if (userId == null) {
+            return "redirect:/login";
+        }
+        model.addAttribute("ownWishlists", wishlistService.getOwnWishlists(userId));
+        model.addAttribute("sharedWishlists", wishlistService.getSharedWishlists(userId));
+        return "letters";
     }
 
     /**
@@ -65,13 +80,20 @@ public class WishlistController {
      * Follows Post/Redirect/Get, so refreshing the page never creates the list twice.
      *
      * @param title    the name typed in the form; an empty string if the field is missing
+     * @param userId   id of the logged-in user, who will own the list; {@code null} if nobody is logged in
      * @param redirect carries a one-time message to the page we redirect to
-     * @return the overview on success, or the overview with the form open again on invalid input
+     * @return the overview on success, the overview with the form open again on invalid input,
+     *         or a redirect to login
      */
     @PostMapping("/wishlists")
-    public String create(@RequestParam(defaultValue = "") String title, RedirectAttributes redirect) {
+    public String create(@RequestParam(defaultValue = "") String title,
+                         @SessionAttribute(name = "userId", required = false) Integer userId,
+                         RedirectAttributes redirect) {
+        if (userId == null) {
+            return "redirect:/login";
+        }
         try {
-            wishlistService.create(DEMO_USER_ID, title);
+            wishlistService.create(userId, title);
             redirect.addFlashAttribute("flash", CREATED);
             return "redirect:/letters";
         } catch (InvalidInputException e) {
@@ -85,15 +107,20 @@ public class WishlistController {
      *
      * @param id       id of the wishlist, from the URL
      * @param title    the new name typed in the form
+     * @param userId   id of the logged-in user; {@code null} if nobody is logged in
      * @param redirect carries a one-time message to the page we redirect to
-     * @return the list's page, with the form open again if the name was invalid
+     * @return the list's page, with the form open again if the name was invalid, or a redirect to login
      */
     @PostMapping("/wishlists/{id}/title")
     public String rename(@PathVariable int id, @RequestParam(defaultValue = "") String title,
+                         @SessionAttribute(name = "userId", required = false) Integer userId,
                          RedirectAttributes redirect) {
+        if (userId == null) {
+            return "redirect:/login";
+        }
         String listPage = "redirect:/wishlists/" + id;
         try {
-            wishlistService.rename(DEMO_USER_ID, id, title);
+            wishlistService.rename(userId, id, title);
             redirect.addFlashAttribute("flash", RENAMED);
             return listPage;
         } catch (InvalidInputException e) {

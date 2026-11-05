@@ -108,6 +108,7 @@ public class UserController {
             User user = userService.login(email, password);
 
             session.setAttribute("userId", user.getId());
+            session.setAttribute("userName", user.getName());   // shown in the topbar and greeting
             return "redirect:/letters";
 
         } catch (InvalidLoginException e) {

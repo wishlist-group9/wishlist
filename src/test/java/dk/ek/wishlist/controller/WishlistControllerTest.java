@@ -4,6 +4,7 @@ import dk.ek.wishlist.exception.InvalidInputException;
 import dk.ek.wishlist.exception.NotFoundException;
 import dk.ek.wishlist.model.Wish;
 import dk.ek.wishlist.model.Wishlist;
+import dk.ek.wishlist.model.WishlistSummary;
 import dk.ek.wishlist.service.WishService;
 import dk.ek.wishlist.service.WishlistService;
 import org.junit.jupiter.api.Test;
@@ -37,12 +38,12 @@ class WishlistControllerTest {
 
     @Test
     void create_validTitle_redirectsWithConfirmation() throws Exception {
-        mockMvc.perform(post("/wishlists").param("title", "Jul 2026"))
+        mockMvc.perform(post("/wishlists").sessionAttr("userId", 1).param("title", "Jul 2026"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/letters"))
                 .andExpect(flash().attribute("flash", "Ønskesedlen er oprettet."));
 
-        verify(wishlistService).create(WishlistController.DEMO_USER_ID, "Jul 2026");
+        verify(wishlistService).create(1, "Jul 2026");
     }
 
     @Test
@@ -50,7 +51,7 @@ class WishlistControllerTest {
         when(wishlistService.create(anyInt(), anyString()))
                 .thenThrow(new InvalidInputException("Giv ønskesedlen et navn."));
 
-        mockMvc.perform(post("/wishlists").param("title", "   "))
+        mockMvc.perform(post("/wishlists").sessionAttr("userId", 1).param("title", "   "))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/letters#new-letter"))
                 .andExpect(flash().attribute("titleError", "Giv ønskesedlen et navn."))
@@ -59,20 +60,20 @@ class WishlistControllerTest {
 
     @Test
     void create_missingTitle_passesEmptyStringToService() throws Exception {
-        mockMvc.perform(post("/wishlists"))
+        mockMvc.perform(post("/wishlists").sessionAttr("userId", 1))
                 .andExpect(status().is3xxRedirection());
 
-        verify(wishlistService).create(WishlistController.DEMO_USER_ID, "");
+        verify(wishlistService).create(1, "");
     }
 
     @Test
     void rename_validTitle_redirectsToListWithConfirmation() throws Exception {
-        mockMvc.perform(post("/wishlists/5/title").param("title", "Fødselsdag"))
+        mockMvc.perform(post("/wishlists/5/title").sessionAttr("userId", 1).param("title", "Fødselsdag"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/wishlists/5"))
                 .andExpect(flash().attribute("flash", "Navnet er ændret."));
 
-        verify(wishlistService).rename(WishlistController.DEMO_USER_ID, 5, "Fødselsdag");
+        verify(wishlistService).rename(1, 5, "Fødselsdag");
     }
 
     @Test
@@ -80,7 +81,7 @@ class WishlistControllerTest {
         doThrow(new InvalidInputException("Giv ønskesedlen et navn."))
                 .when(wishlistService).rename(anyInt(), anyInt(), anyString());
 
-        mockMvc.perform(post("/wishlists/5/title").param("title", "   "))
+        mockMvc.perform(post("/wishlists/5/title").sessionAttr("userId", 1).param("title", "   "))
                 .andExpect(redirectedUrl("/wishlists/5#edit-letter"))
                 .andExpect(flash().attribute("titleError", "Giv ønskesedlen et navn."))
                 .andExpect(flash().attributeCount(1));
@@ -91,8 +92,24 @@ class WishlistControllerTest {
         doThrow(new NotFoundException("Ønskesedlen findes ikke."))
                 .when(wishlistService).rename(anyInt(), anyInt(), anyString());
 
-        mockMvc.perform(post("/wishlists/5/title").param("title", "Fødselsdag"))
+        mockMvc.perform(post("/wishlists/5/title").sessionAttr("userId", 1).param("title", "Fødselsdag"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void create_notLoggedIn_redirectsToLoginAndSavesNothing() throws Exception {
+        mockMvc.perform(post("/wishlists").param("title", "Jul 2026"))
+                .andExpect(redirectedUrl("/login"));
+
+        verifyNoInteractions(wishlistService);
+    }
+
+    @Test
+    void rename_notLoggedIn_redirectsToLoginAndChangesNothing() throws Exception {
+        mockMvc.perform(post("/wishlists/5/title").param("title", "Fødselsdag"))
+                .andExpect(redirectedUrl("/login"));
+
+        verifyNoInteractions(wishlistService);
     }
 
     @Test
@@ -108,7 +125,11 @@ class WishlistControllerTest {
                 .andExpect(content().string(containsString("Jul 2026")))
                 .andExpect(content().string(containsString("Uldtørklæde")))
                 .andExpect(content().string(containsString("249,00 kr.")))
-                .andExpect(content().string(containsString("Tilføj ønske")));
+                .andExpect(content().string(containsString("Tilføj ønske")))
+                .andExpect(content().string(containsString("id=\"edit-wish-1\"")))
+                .andExpect(content().string(containsString("/wishlists/5/wishes/1/update")))
+                .andExpect(content().string(containsString("id=\"delete-wish-1\"")))
+                .andExpect(content().string(containsString("/wishlists/5/wishes/1/delete")));
     }
 
     @Test
@@ -121,7 +142,9 @@ class WishlistControllerTest {
                 .andExpect(model().attribute("owner", false))
                 .andExpect(content().string(containsString("Uldtørklæde")))
                 .andExpect(content().string(not(containsString("Tilføj ønske"))))
-                .andExpect(content().string(not(containsString("Redigér navn"))));
+                .andExpect(content().string(not(containsString("Redigér navn"))))
+                .andExpect(content().string(not(containsString("edit-wish-1"))))
+                .andExpect(content().string(not(containsString("delete-wish-1"))));
     }
 
     @Test
@@ -150,5 +173,52 @@ class WishlistControllerTest {
                 .andExpect(redirectedUrl("/login"));
 
         verifyNoInteractions(wishlistService, wishService);
+    }
+
+    @Test
+    void overview_showsOwnAndSharedLists() throws Exception {
+        when(wishlistService.getOwnWishlists(1)).thenReturn(List.of(
+                new WishlistSummary(5, "Jul 2026", "Test Ejer", 1)));
+        when(wishlistService.getSharedWishlists(1)).thenReturn(List.of(
+                new WishlistSummary(7, "Mors liste", "Mor", 4)));
+
+        mockMvc.perform(get("/letters").sessionAttr("userId", 1).sessionAttr("userName", "Test Ejer"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("letters"))
+                .andExpect(content().string(containsString("Hej Test Ejer")))
+                .andExpect(content().string(containsString("Jul 2026")))
+                .andExpect(content().string(containsString("1 ønske")))
+                .andExpect(content().string(containsString("/wishlists/5")))
+                .andExpect(content().string(containsString("Mors liste")))
+                .andExpect(content().string(containsString("Fra Mor · 4 ønsker")))
+                .andExpect(content().string(containsString("/wishlists/7")))
+                .andExpect(content().string(not(containsString("Patrick"))));
+    }
+
+    @Test
+    void overview_nothingShared_showsMessage() throws Exception {
+        when(wishlistService.getOwnWishlists(1)).thenReturn(List.of());
+        when(wishlistService.getSharedWishlists(1)).thenReturn(List.of());
+
+        mockMvc.perform(get("/letters").sessionAttr("userId", 1))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Ingen har delt en ønskeseddel med dig endnu.")));
+    }
+
+    @Test
+    void overview_showsFlashMessage() throws Exception {
+        when(wishlistService.getOwnWishlists(1)).thenReturn(List.of());
+        when(wishlistService.getSharedWishlists(1)).thenReturn(List.of());
+
+        mockMvc.perform(get("/letters").sessionAttr("userId", 1).flashAttr("flash", "Ønskesedlen er oprettet."))
+                .andExpect(content().string(containsString("Ønskesedlen er oprettet.")));
+    }
+
+    @Test
+    void overview_notLoggedIn_redirectsToLogin() throws Exception {
+        mockMvc.perform(get("/letters"))
+                .andExpect(status().is3xxRedirection());
+
+        verifyNoInteractions(wishlistService);
     }
 }

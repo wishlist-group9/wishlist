@@ -51,7 +51,8 @@
     <div class="container topbar-inner">
         <a th:replace="~{fragments/layout :: brand(@{/letters})}"></a>
         <nav class="account" aria-label="Konto">
-            <span class="avatar avatar-small" aria-hidden="true">P</span>
+            <span class="avatar avatar-small" aria-hidden="true"
+                  th:text="${session.userName != null ? session.userName.substring(0, 1).toUpperCase() : ''}">P</span>
             <form method="post" action="/logout" th:action="@{/logout}">
                 <button class="account-link" type="submit">Log ud</button>
             </form>

@@ -1,12 +1,15 @@
 package dk.ek.wishlist.repository;
 
 import dk.ek.wishlist.model.Wishlist;
+import dk.ek.wishlist.model.WishlistSummary;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
+import java.util.List;
 import java.util.Optional;
 
 /** Reads and writes the wishlist table **/
@@ -25,6 +28,35 @@ public class WishlistRepository {
             "SELECT id, user_id, title, share_token FROM wishlist WHERE id = ?";
     private static final String IS_SHARED_WITH =
             "SELECT COUNT(*) FROM wishlist_share WHERE wishlist_id = ? AND user_id = ?";
+
+    // Overview queries: one row per wishlist with the owner's name and the number of wishes.
+    // LEFT JOIN keeps lists without wishes (COUNT gives 0 for them).
+    private static final String SELECT_OWNED_BY = """
+            SELECT w.id, w.title, u.name AS owner_name, COUNT(wi.id) AS wish_count
+            FROM wishlist w
+            JOIN app_user u ON u.id = w.user_id
+            LEFT JOIN wish wi ON wi.wishlist_id = w.id
+            WHERE w.user_id = ?
+            GROUP BY w.id, w.title, u.name
+            ORDER BY w.id
+            """;
+    private static final String SELECT_SHARED_WITH = """
+            SELECT w.id, w.title, u.name AS owner_name, COUNT(wi.id) AS wish_count
+            FROM wishlist w
+            JOIN app_user u ON u.id = w.user_id
+            JOIN wishlist_share s ON s.wishlist_id = w.id
+            LEFT JOIN wish wi ON wi.wishlist_id = w.id
+            WHERE s.user_id = ?
+            GROUP BY w.id, w.title, u.name
+            ORDER BY w.id
+            """;
+
+    private static final RowMapper<WishlistSummary> SUMMARY_MAPPER = (rs, rowNum) -> new WishlistSummary(
+            rs.getInt("id"),
+            rs.getString("title"),
+            rs.getString("owner_name"),
+            rs.getInt("wish_count")
+    );
 
 
     /**
@@ -127,5 +159,25 @@ public class WishlistRepository {
     public boolean isSharedWith(int wishlistId, int userId) {
         Integer count = jdbcTemplate.queryForObject(IS_SHARED_WITH, Integer.class, wishlistId, userId);
         return count != null && count > 0;
+    }
+
+    /**
+     * Finds the wishlists a user owns, oldest first, for the overview page.
+     *
+     * @param userId id of the owner
+     * @return one summary per list; an empty list if the user has none
+     */
+    public List<WishlistSummary> findOwnedBy(int userId) {
+        return jdbcTemplate.query(SELECT_OWNED_BY, SUMMARY_MAPPER, userId);
+    }
+
+    /**
+     * Finds the wishlists other users have shared with a user, oldest first.
+     *
+     * @param userId id of the user the lists are shared with
+     * @return one summary per list; an empty list if nothing is shared with the user
+     */
+    public List<WishlistSummary> findSharedWith(int userId) {
+        return jdbcTemplate.query(SELECT_SHARED_WITH, SUMMARY_MAPPER, userId);
     }
 }
