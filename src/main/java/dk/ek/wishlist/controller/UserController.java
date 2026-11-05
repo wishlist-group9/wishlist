@@ -115,4 +115,16 @@ public class UserController {
             return "login";
         }
     }
+
+    /**
+     * Logs the user out by ending the session.
+     *
+     * @param session the current session, which is invalidated
+     * @return a redirect to {@code /login}
+     */
+    @PostMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/login";
+    }
 }
