@@ -153,4 +153,53 @@ class WishRepositoryTest {
     void findByWishlistId_noWishes_returnsEmptyList() {
         assertTrue(repository.findByWishlistId(1).isEmpty());
     }
+
+    @Test
+    void delete_existingWish_removesOnlyThatWish() {
+        //Arrange: Save two wishes on wishlist 1
+        repository.save(new Wish(0, 1, "En bog", null, null, null));
+        repository.save(new Wish(0, 1, "En trøje", null, null, null));
+        Integer bookId = jdbcTemplate.queryForObject(
+                "SELECT id FROM wish WHERE title = 'En bog'", Integer.class);
+        assertNotNull(bookId);
+
+        //Act: Delete the book
+        int deletedRows = repository.delete(bookId, 1);
+
+        //Assert: One row was deleted, and the other wish is still there
+        assertEquals(1, deletedRows);
+
+        Integer bookCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM wish WHERE title = 'En bog'", Integer.class);
+        Integer shirtCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM wish WHERE title = 'En trøje'", Integer.class);
+
+        assertEquals(Integer.valueOf(0), bookCount);
+        assertEquals(Integer.valueOf(1), shirtCount);
+    }
+
+    @Test
+    void delete_wishOnOtherWishlist_deletesNothing() {
+        //Arrange: The wish is on wishlist 1
+        repository.save(new Wish(0, 1, "En bog", null, null, null));
+        Integer wishId = jdbcTemplate.queryForObject(
+                "SELECT id FROM wish", Integer.class);
+        assertNotNull(wishId);
+
+        //Act: Try to delete it through wishlist 2
+        int deletedRows = repository.delete(wishId, 2);
+
+        //Assert: Nothing was deleted, and the wish is still on wishlist 1
+        assertEquals(0, deletedRows);
+
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM wish WHERE wishlist_id = 1", Integer.class);
+        assertEquals(Integer.valueOf(1), count);
+    }
+
+    @Test
+    void delete_unknownWish_returnsZero() {
+        //Act and assert: No wish with id 999 exists
+        assertEquals(0, repository.delete(999, 1));
+    }
 }

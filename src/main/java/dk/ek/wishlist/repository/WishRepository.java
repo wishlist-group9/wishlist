@@ -115,4 +115,23 @@ public class WishRepository {
                 wishlistId
         );
     }
+
+    /**
+     * Permanently deletes a Wish from the specified wishlist
+     *
+     * @param wishId        the id of the wish to delete
+     * @param wishlistId    the id of the wishlist that contains the wish
+     * @return              the number of rows deleted: 1 if the wish was deleted,
+     *                      0 if no wish has that id on that wishlist
+     */
+    public int delete(int wishId, int wishlistId) {
+        // Both ids are in the WHERE clause, so a wish can only be deleted
+        // through the wishlist it actually belongs to
+        String sql = """
+                DELETE FROM wish WHERE id = ? AND wishlist_id = ?
+                """;
+        return jdbcTemplate.update(sql, wishId, wishlistId);
+
+    }
+
 }

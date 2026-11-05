@@ -164,6 +164,53 @@ class WishServiceTest{
     }
 
     @Test
+    void deleteWish_ownWishlist_deletesWish() {
+        //Arrange: User 7 owns wishlist 1, and the repository deletes one row
+        when(wishlistRepository.existsByIdAndUserId(1, 7)).thenReturn(true);
+        when(repository.delete(5, 1)).thenReturn(1);
+
+        //Act: Delete wish 5 from wishlist 1
+        service.deleteWish(5, 1, 7);
+
+        //Assert: The repository was asked to delete wish 5 from wishlist 1
+        verify(repository).delete(5, 1);
+    }
+
+    @Test
+    void deleteWish_wishlistOfAnotherUser_throwsAndDeletesNothing() {
+        //Arrange: Wishlist 1 does not belong to user 8
+        when(wishlistRepository.existsByIdAndUserId(1, 8)).thenReturn(false);
+
+        //Act and assert: The delete is rejected
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> service.deleteWish(5, 1, 8)
+        );
+
+        assertEquals("Ønskesedlen findes ikke.", exception.getMessage());
+
+        //Check that the wish table was never touched
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void deleteWish_wishNotOnWishlist_throws() {
+        //Arrange: The user owns the wishlist, but no row is deleted
+        when(wishlistRepository.existsByIdAndUserId(1, 7)).thenReturn(true);
+        when(repository.delete(999, 1)).thenReturn(0);
+
+        //Act and assert: Zero deleted rows is reported as "not found"
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> service.deleteWish(999, 1, 7)
+        );
+
+        assertEquals("Ønsket findes ikke på denne ønskeseddel.", exception.getMessage());
+    }
+
+
+
+    @Test
     void getWishes_returnsTheRepositorysWishes() {
         //Arrange: The repository has one wish on list 5
         List<Wish> wishes = List.of(new Wish(1, 5, "Bog", null, null, null));

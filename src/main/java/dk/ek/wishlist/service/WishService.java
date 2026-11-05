@@ -103,6 +103,29 @@ public class WishService {
     }
 
     /**
+     * Permanently deletes a wish from a wishlist that belongs to the logged-in user
+     *
+     * @param wishId        the id of the wish to delete
+     * @param wishlistId    the id of the wishlist that contains the wish
+     * @param userId        the id of the logged-in user
+     * @throws NotFoundException if the wishlist does not exist, belongs to another user,
+     *                           or does not contain the specified wish
+     */
+    public void deleteWish(int wishId, int wishlistId, int userId) {
+        // Use the same error for missing and inaccessible wishlists
+        if (!wishlistRepository.existsByIdAndUserId(wishlistId, userId)) {
+            throw new NotFoundException("Ønskesedlen findes ikke.");
+        }
+
+        int deletedRows = wishRepository.delete(wishId, wishlistId);
+
+        // 0 deleted rows means the wish does not exist on this wishlist
+        if (deletedRows == 0) {
+            throw new NotFoundException("Ønsket findes ikke på denne ønskeseddel.");
+        }
+    }
+
+    /**
      * Checks that the wish has a title and that its price, if provided, is not negative
      *
      * @param wish the wish to validate

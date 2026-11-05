@@ -138,4 +138,44 @@ class WishControllerTest{
 
         verify(service).createWish(any(Wish.class));
     }
+
+    @Test
+    void deleteWish_loggedIn_redirectsToListWithSuccessMessage() throws Exception {
+        //Act and assert: A logged-in user (id 7) deletes wish 5 on wishlist 3
+        mockMvc.perform(post("/wishlists/3/wishes/5/delete")
+                        .sessionAttr("userId", 7))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/letters/3?view=owner"))
+                .andExpect(flash().attribute("flash", "Ønsket blev slettet."));
+
+        //The ids from the URL and the session are passed to the service
+        verify(service).deleteWish(5, 3, 7);
+    }
+
+    @Test
+    void deleteWish_notLoggedIn_redirectsToLoginAndDeletesNothing() throws Exception {
+        //Act and assert: No userId in the session
+        mockMvc.perform(post("/wishlists/3/wishes/5/delete"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void deleteWish_notFound_redirectsToOverviewWithError() throws Exception {
+        //Arrange: Make the mock service reject the deletion
+        doThrow(new NotFoundException("Ønsket findes ikke på denne ønskeseddel."))
+                .when(service).deleteWish(999, 3, 7);
+
+        //Act and assert: Check the redirect and the error message
+        mockMvc.perform(post("/wishlists/3/wishes/999/delete")
+                        .sessionAttr("userId", 7))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/letters"))
+                .andExpect(flash().attribute(
+                        "errorMessage", "Ønsket findes ikke på denne ønskeseddel."
+                ))
+                .andExpect(flash().attributeCount(1));
+    }
 }
