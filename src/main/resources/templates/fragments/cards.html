@@ -42,17 +42,31 @@
     <div class="wish-footer">
         <span class="price" th:text="${price}">0 kr.</span>
         <th:block th:unless="${owner}">
-            <button class="btn btn-outline btn-small" type="button" th:if="${status == 'open'}" th:aria-label="|Reservér ${title}|">Reservér</button>
-            <button class="btn btn-outline btn-small" type="button" th:if="${status == 'mine'}" th:aria-label="|Fortryd din reservation af ${title}|">Fortryd reservation</button>
-            <span class="taken" th:if="${status == 'taken'}">Reserveret</span>
+            <th:block th:replace="~{fragments/cards :: reserve-button(${wishlist.id}, ${id}, ${title}, ${status})}"></th:block>
         </th:block>
     </div>
 </article>
 
+<!--
+    The guest's reserve / cancel button for one wish. Used on the card and in the detail modal.
+    status: 'open', 'mine' or 'taken' (from Wish.statusFor). Shows nothing for 'taken' but a label.
+-->
+<th:block th:fragment="reserve-button(wishlistId, wishId, title, status)">
+    <form th:if="${status == 'open'}" method="post"
+          th:action="@{/wishlists/{l}/wishes/{w}/reserve(l=${wishlistId}, w=${wishId})}">
+        <button class="btn btn-outline btn-small" type="submit" th:aria-label="|Reservér ${title}|">Reservér</button>
+    </form>
+    <form th:if="${status == 'mine'}" method="post"
+          th:action="@{/wishlists/{l}/wishes/{w}/unreserve(l=${wishlistId}, w=${wishId})}">
+        <button class="btn btn-outline btn-small" type="submit" th:aria-label="|Fortryd din reservation af ${title}|">Fortryd reservation</button>
+    </form>
+    <span class="taken" th:if="${status == 'taken'}">Reserveret</span>
+</th:block>
+
 <!-- Empty grid: same voice as the error pages -->
 <div th:fragment="no-wishes" class="empty-state">
     <svg th:replace="~{fragments/icons :: gift('?')}"></svg>
-    <p class="empty-state-title">Ho ho … åh nej.</p>
+    <p class="empty-state-title">Ho ho ho … åh nej.</p>
     <p class="muted">Ingen ønsker her. Prøv et andet filter.</p>
 </div>
 

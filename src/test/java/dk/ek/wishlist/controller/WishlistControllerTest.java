@@ -251,4 +251,41 @@ class WishlistControllerTest {
         mockMvc.perform(get("/s/findes-ikke").sessionAttr("userId", 2))
                 .andExpect(status().isNotFound());
     }
+
+    // Three wishes: free, reserved by the guest (2), reserved by someone else (3)
+    private List<Wish> wishesInAllStates() {
+        Wish free = new Wish(1, 5, "Bog", null, null, null);
+        Wish mine = new Wish(2, 5, "Hue", null, null, null);
+        mine.setReservedBy(2);
+        Wish taken = new Wish(3, 5, "Tørklæde", null, null, null);
+        taken.setReservedBy(3);
+        return List.of(free, mine, taken);
+    }
+
+    @Test
+    void show_guest_seesReserveButtonsByStatus() throws Exception {
+        when(wishlistService.getVisibleWishlist(2, 5)).thenReturn(new Wishlist(5, 1, "Jul 2026", "token-1"));
+        when(wishService.getWishes(5)).thenReturn(wishesInAllStates());
+
+        mockMvc.perform(get("/wishlists/5").sessionAttr("userId", 2))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/wishlists/5/wishes/1/reserve")))
+                .andExpect(content().string(containsString("/wishlists/5/wishes/2/unreserve")))
+                .andExpect(content().string(containsString("badge-mine")))
+                .andExpect(content().string(containsString("badge-reserved")))
+                .andExpect(content().string(not(containsString("/wishlists/5/wishes/3/reserve"))));
+    }
+
+    @Test
+    void show_owner_neverSeesReservations() throws Exception {
+        when(wishlistService.getVisibleWishlist(1, 5)).thenReturn(new Wishlist(5, 1, "Jul 2026", "token-1"));
+        when(wishService.getWishes(5)).thenReturn(wishesInAllStates());
+
+        mockMvc.perform(get("/wishlists/5").sessionAttr("userId", 1))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("badge-mine"))))
+                .andExpect(content().string(not(containsString("badge-reserved"))))
+                .andExpect(content().string(not(containsString("/reserve"))))
+                .andExpect(content().string(not(containsString("/unreserve"))));
+    }
 }

@@ -219,4 +219,61 @@ class WishServiceTest{
         //Act and assert: The service passes them on unchanged
         assertEquals(wishes, service.getWishes(5));
     }
+
+    @Test
+    void reserve_sharedGuestAndFreeWish_reserves() {
+        when(wishlistRepository.isSharedWith(3, 2)).thenReturn(true);
+        when(repository.reserve(5, 3, 2)).thenReturn(1);
+
+        service.reserve(5, 3, 2);
+
+        verify(repository).reserve(5, 3, 2);
+    }
+
+    @Test
+    void reserve_alreadyReserved_throws() {
+        when(wishlistRepository.isSharedWith(3, 2)).thenReturn(true);
+        when(repository.reserve(5, 3, 2)).thenReturn(0);
+
+        InvalidInputException e = assertThrows(InvalidInputException.class,
+                () -> service.reserve(5, 3, 2));
+        assertEquals(WishService.ALREADY_RESERVED, e.getMessage());
+    }
+
+    @Test
+    void reserve_ownerOrStranger_throwsNotFoundAndReservesNothing() {
+        // The owner is never in wishlist_share, so this also covers "the owner can't reserve"
+        when(wishlistRepository.isSharedWith(3, 1)).thenReturn(false);
+
+        assertThrows(NotFoundException.class, () -> service.reserve(5, 3, 1));
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void cancelReservation_ownReservation_cancels() {
+        when(wishlistRepository.isSharedWith(3, 2)).thenReturn(true);
+        when(repository.cancelReservation(5, 3, 2)).thenReturn(1);
+
+        service.cancelReservation(5, 3, 2);
+
+        verify(repository).cancelReservation(5, 3, 2);
+    }
+
+    @Test
+    void cancelReservation_notReservedByUser_throws() {
+        when(wishlistRepository.isSharedWith(3, 2)).thenReturn(true);
+        when(repository.cancelReservation(5, 3, 2)).thenReturn(0);
+
+        InvalidInputException e = assertThrows(InvalidInputException.class,
+                () -> service.cancelReservation(5, 3, 2));
+        assertEquals(WishService.NOT_RESERVED_BY_YOU, e.getMessage());
+    }
+
+    @Test
+    void cancelReservation_notShared_throwsNotFoundAndChangesNothing() {
+        when(wishlistRepository.isSharedWith(3, 2)).thenReturn(false);
+
+        assertThrows(NotFoundException.class, () -> service.cancelReservation(5, 3, 2));
+        verifyNoInteractions(repository);
+    }
 }
