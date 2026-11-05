@@ -76,4 +76,23 @@ public class WishlistRepository {
         );
         return count != null && count > 0;
     }
+
+    /**
+     * Checks whether the specified wishlist belongs to the given user
+     *
+     * @param wishlistId the id of the wishlist to check
+     * @param userId the id of the user to check ownership for
+     * @return {@code true} if the wishlist exists and belongs to the user,
+     *         otherwise {@code false}
+     */
+    public boolean existsByIdAndUserId(int wishlistId, int userId){
+        String sql = """
+                SELECT COUNT(*)
+                FROM wishlist
+                WHERE id = ? AND user_id = ?
+                """;
+
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, wishlistId, userId);
+        return count !=null && count >0;
+    }
 }
