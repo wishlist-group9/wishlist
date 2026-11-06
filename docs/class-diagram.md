@@ -4,8 +4,6 @@ The class diagram is the final documentation of the program design. It shows eve
 
 ![Class diagram](class-diagram.png)
 
-Open [class-diagram.svg](class-diagram.svg) to zoom without losing sharpness.
-
 ## How to read it
 
 Calls go **down**, one layer at a time: **Controller → Service → Repository → database**. The model classes are what the layers pass between them.
