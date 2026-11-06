@@ -24,6 +24,7 @@ public class WishlistRepository {
 
     private static final String INSERT_WISHLIST = "INSERT INTO wishlist (user_id, title, share_token) VALUES (?,?,?)";
     private static final String UPDATE_TITLE = "UPDATE wishlist SET title = ? WHERE id = ? AND user_id = ?";
+    private static final String DELETE_WISHLIST = "DELETE FROM wishlist WHERE id = ? AND user_id = ?";
     private static final String SELECT_BY_ID = "SELECT id, user_id, title, share_token FROM wishlist WHERE id = ?";
     private static final String IS_SHARED_WITH = "SELECT COUNT(*) FROM wishlist_share WHERE wishlist_id = ? AND user_id = ?";
     private static final String SELECT_BY_SHARE_TOKEN = "SELECT id, user_id, title, share_token FROM wishlist WHERE share_token = ?";
@@ -106,6 +107,17 @@ public class WishlistRepository {
      */
     public boolean updateTitle(int userId, int wishlistId, String title) {
         return jdbcTemplate.update(UPDATE_TITLE, title, wishlistId, userId) == 1;
+    }
+
+    /**
+     * Deletes a wishlist and its wishes if the wishlist belongs to the given user
+     *
+     * @param userId     id of the user trying to delete the wishlist
+     * @param wishlistId id of the wishlist to delete
+     * @return {@code true} if the wishlist was deleted, or {@code false} if it doesn't exist or belongs to someone else
+     */
+    public boolean delete(int userId, int wishlistId){
+        return jdbcTemplate.update(DELETE_WISHLIST, wishlistId, userId) == 1;
     }
 
     /**

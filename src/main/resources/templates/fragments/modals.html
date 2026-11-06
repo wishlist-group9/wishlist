@@ -142,6 +142,27 @@
     </form>
 </div>
 
+<!--
+    Confirms deletion of a wishlist and all its wishes (owner only)
+    Opened with #delete-letter
+    wishlistId: the ID of the wishlist to delete
+-->
+<div th:fragment="delete-letter(wishlistId)" id="delete-letter" class="modal">
+    <form class="modal-box" role="alertdialog" aria-modal="true"
+          aria-labelledby="delete-letter-title" aria-describedby="delete-letter-text"
+          method="post" th:action="@{/wishlists/{id}/delete(id=${wishlistId})}">
+        <h2 class="modal-title" id="delete-letter-title">Slet ønskesedlen?</h2>
+        <p class="modal-text" id="delete-letter-text">
+            Ønskesedlen og alle dens ønsker bliver slettet permanent.
+            Det kan ikke fortrydes.
+        </p>
+        <div class="form-actions">
+            <a class="btn btn-outline" href="#">Annullér</a>
+            <button class="btn btn-primary" type="submit">Slet ønskeseddel</button>
+        </div>
+    </form>
+</div>
+
 <!-- Write a new letter -->
 <div th:fragment="new-letter" id="new-letter" class="modal">
     <form class="modal-box" role="dialog" aria-modal="true" aria-labelledby="new-letter-title"
