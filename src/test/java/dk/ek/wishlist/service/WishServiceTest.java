@@ -41,11 +41,10 @@ class WishServiceTest{
                 "https://example.com", 149.95
         );
 
-        // Make the mock report that wishlist 1 exists
-        when(wishlistRepository.existsById(1)).thenReturn(true);
-
+        // Make the mock report that wishlist 1 exists and user 7 owns wishlist 1
+        when(wishlistRepository.existsByIdAndUserId(1, 7)).thenReturn(true);
         //Act: Ask the service to create the wish
-        service.createWish(wish);
+        service.createWish(wish, 7);
 
         //Assert: Check that the wish is passed to the repository
         verify(repository).save(wish);
@@ -59,7 +58,7 @@ class WishServiceTest{
         // Act and assert: Check that the missing title is rejected
         InvalidInputException exception = assertThrows(
                 InvalidInputException.class,
-                () -> service.createWish(wish)
+                () -> service.createWish(wish, 7)
         );
 
         //Check the error message and that the repository was not called
@@ -75,7 +74,7 @@ class WishServiceTest{
         //Act and assert: Check that the empty title is rejected
         assertThrows(
                 InvalidInputException.class,
-                () -> service.createWish(wish)
+                () -> service.createWish(wish, 7)
         );
 
         //Check that the repository was not called
@@ -90,7 +89,7 @@ class WishServiceTest{
         //Act and assert: Check that a title containing only spaces is rejected
         assertThrows(
                 InvalidInputException.class,
-                () -> service.createWish(wish)
+                () -> service.createWish(wish, 7)
         );
 
         //Check that the repository was not called
@@ -105,7 +104,7 @@ class WishServiceTest{
         //Act and assert: Check that the negative price is rejected
         InvalidInputException exception = assertThrows(
                 InvalidInputException.class,
-                () -> service.createWish(wish)
+                () -> service.createWish(wish, 7)
         );
 
         //Check the error message and that the repository was not called
@@ -118,11 +117,11 @@ class WishServiceTest{
         //Arrange: Create a wish without a price
         Wish wish = new Wish(0, 1, "En bog", null, null, null);
 
-        // Make the mock report that wishlist 1 exists
-        when(wishlistRepository.existsById(1)).thenReturn(true);
+        // Make the mock report that wishlist 1 exists and user 7 owns wishlist 1
+        when(wishlistRepository.existsByIdAndUserId(1, 7)).thenReturn(true);
 
         //Act: Create the wish. A price is optional
-        service.createWish(wish);
+        service.createWish(wish, 7);
 
         //Assert: Check that the wish is passed to the repository
         verify(repository).save(wish);
@@ -133,11 +132,11 @@ class WishServiceTest{
         //Arrange: Create a wish with a price of zero
         Wish wish = new Wish(0, 1, "Et hjemmelavet kort", null, null, 0.0);
 
-        // Make the mock report that wishlist 1 exists
-        when(wishlistRepository.existsById(1)).thenReturn(true);
+        // Make the mock report that wishlist 1 exists and user 7 owns wishlist 1
+        when(wishlistRepository.existsByIdAndUserId(1, 7)).thenReturn(true);
 
         //Act: Create the wish. Zero is an allowed price
-        service.createWish(wish);
+        service.createWish(wish, 7);
 
         //Assert: Check that the wish is passed to the repository
         verify(repository).save(wish);
@@ -148,18 +147,29 @@ class WishServiceTest{
         //Arrange: Wishlist 999 does not exist
         Wish wish = new Wish(0, 999, "En bog", null, null, null);
 
-        when(wishlistRepository.existsById(999)).thenReturn(false);
+        when(wishlistRepository.existsByIdAndUserId(999, 7)).thenReturn(false);
 
         //Act and assert: Check that the unknown wishlist is rejected
         NotFoundException exception = assertThrows(
                 NotFoundException.class,
-                () -> service.createWish(wish)
+                () -> service.createWish(wish, 7)
         );
 
         assertEquals("Ønskesedlen findes ikke.", exception.getMessage());
 
         //Check that the wishlist was checked and no wish was saved
-        verify(wishlistRepository).existsById(999);
+        verify(wishlistRepository).existsByIdAndUserId(999, 7);
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void createWish_wishListOfAnotherUser_throwsAndSavesNothing(){
+        Wish wish = new Wish(0, 1, "En bog", null, null, null);
+        when(wishlistRepository.existsByIdAndUserId(1, 8)).thenReturn(false);
+
+        assertThrows(NotFoundException.class, () -> service.createWish(wish, 8));
+
+        verify(wishlistRepository).existsByIdAndUserId(1, 8);
         verifyNoInteractions(repository);
     }
 

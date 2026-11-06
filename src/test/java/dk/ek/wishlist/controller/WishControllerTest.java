@@ -48,6 +48,7 @@ class WishControllerTest{
     void createWish_validInput_redirectWithSuccessMessage() throws Exception{
         //Act and assert: Submit valid form data and check the response
         mockMvc.perform(post("/wishlists/3/wishes")
+                .sessionAttr("userId", 7)
                 .param("title", "En bog")
                 .param("description", "En fantasybog")
                 .param("link", "https://example.com")
@@ -58,7 +59,7 @@ class WishControllerTest{
                         "flash", "Ønsket blev oprettet."
                 ));
         // Check that the controller called the service.
-        verify(service).createWish(any(Wish.class));
+        verify(service).createWish(any(Wish.class), eq(7));
     }
 
     @Test
@@ -69,13 +70,14 @@ class WishControllerTest{
 
         // Act: Submit to wishlist 3 with a different ID in the form.
         mockMvc.perform(post("/wishlists/3/wishes")
+                        .sessionAttr("userId", 7)
                         .param("wishlistId", "99")
                         .param("title", "En bog")
                         .param("price", "149.95"))
                 .andExpect(status().is3xxRedirection());
 
         // Assert: The URL determines which wishlist receives the wish.
-        verify(service).createWish(captor.capture());
+        verify(service).createWish(captor.capture(), eq(7));
 
         // Gets the captured wish so its values can be checked.
         Wish capturedWish = captor.getValue();
@@ -89,10 +91,11 @@ class WishControllerTest{
     void createWish_invalidInput_redirectsWithErrorMessage() throws Exception {
         // Arrange: Make the mock service reject the wish.
         doThrow(new InvalidInputException("Ønsket skal have en titel."))
-                .when(service).createWish(any(Wish.class));
+                .when(service).createWish(any(Wish.class), eq(7));
 
         // Act and assert: Check that the controller handles the exception.
         mockMvc.perform(post("/wishlists/3/wishes")
+                        .sessionAttr("userId", 7)
                         .param("title", "   "))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/wishlists/3"))
@@ -101,13 +104,14 @@ class WishControllerTest{
                 ))
                 .andExpect(flash().attributeCount(1));
 
-        verify(service).createWish(any(Wish.class));
+        verify(service).createWish(any(Wish.class), eq(7));
     }
 
     @Test
     void createWish_invalidPriceFormat_doesNotCallService() throws Exception {
         // Act and assert: Submit a price that cannot be converted to Double.
         mockMvc.perform(post("/wishlists/3/wishes")
+                        .sessionAttr("userId", 7)
                         .param("title", "En bog")
                         .param("price", "hej"))
                 .andExpect(status().is3xxRedirection())
@@ -125,10 +129,11 @@ class WishControllerTest{
     void createWish_unknownWishlist_redirectsToOverviewWithError() throws Exception {
         //Arrange: Make the mock service reject the unknown wishlist
         doThrow(new NotFoundException("Ønskesedlen findes ikke."))
-                .when(service).createWish(any(Wish.class));
+                .when(service).createWish(any(Wish.class), eq(7));
 
         //Act and assert: Check the redirect and error message
         mockMvc.perform(post("/wishlists/999/wishes")
+                        .sessionAttr("userId", 7)
                         .param("title", "En bog"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/letters"))
@@ -137,7 +142,19 @@ class WishControllerTest{
                 ))
                 .andExpect(flash().attributeCount(1));
 
-        verify(service).createWish(any(Wish.class));
+        verify(service).createWish(any(Wish.class), eq(7));
+    }
+
+    @Test
+    void createWish_notLoggedIn_redirectsToLoginWithoutCallingService() throws Exception {
+        //Act and assert: Submit a valid wish without a user id in the session
+        mockMvc.perform(post("/wishlists/3/wishes")
+                        .param("title", "En bog"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+
+        //Assert: The controller stops the request before calling the service
+        verifyNoInteractions(service);
     }
 
     @Test

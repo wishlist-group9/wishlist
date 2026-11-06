@@ -147,6 +147,25 @@ public class WishlistController {
     }
 
     /**
+     * Deletes a wishlist owned by the logged in user
+     *
+     * @param id     id of the wishlist to delete
+     * @param userId id of the logged-in user, or {@code null} if nobody is logged in
+     * @return a redirect to the wishlist overview or to the login page
+     * @throws dk.ek.wishlist.exception.NotFoundException if the wishlist does not exist or belongs to someone else
+     */
+    @PostMapping("/wishlists/{id}/delete")
+    public String delete(@PathVariable int id,
+                         @SessionAttribute(name = "userId", required = false) Integer userId){
+        if(userId == null){
+            return "redirect:/login";
+        }
+
+        wishlistService.delete(userId, id);
+        return "redirect:/letters";
+    }
+
+    /**
      * Opens a share link. A logged-in user gets access to the list and is sent to it.
      * A user who isn't logged in is sent to login first; the token is kept in the
      * session, so login can send them back here.

@@ -32,17 +32,25 @@ public class WishController {
      * Creates a wish on the selected wishlist
      *
      * @param wishlistId the ID of the selected wishlist
+     * @param userId the id of the logged in user, or {@code null} if absent
      * @param wish the wish containing the values submitted in the form
      * @param bindingResult contains errors when converting form values
      * @param redirectAttributes used to display messages after redirecting
-     * @return a redirect to the wishlist page, or the overview if th wishlist does not exist
+     * @return a redirect to the wishlist page, to the overview if the wishlist
+     *         does not exist or belongs to another user, or to the login page
+     *         if the user is not logged in
      */
     @PostMapping("/wishlists/{wishlistId}/wishes")
     public String createWish(
             @PathVariable int wishlistId,
+            @SessionAttribute(name = "userId", required = false) Integer userId,
             @ModelAttribute Wish wish,
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes){
+
+        if(userId == null){
+            return "redirect:/login";
+        }
         if(bindingResult.hasErrors()){
             redirectAttributes.addFlashAttribute(
                     "errorMessage", "Kontrollér de indtastede oplysninger."
@@ -57,7 +65,7 @@ public class WishController {
         //If title or price is invalid, catches the exception
         //and adds its message to be displayed after the redirect
         try{
-            wishService.createWish(wish);
+            wishService.createWish(wish, userId);
 
             redirectAttributes.addFlashAttribute(
                     "flash", "Ønsket blev oprettet."

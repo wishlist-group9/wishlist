@@ -79,6 +79,19 @@ public class WishlistService {
     }
 
     /**
+     * Deletes a wishlist if it belongs to the given user
+     *
+     * @param userId     id of the user trying to delete the wishlist
+     * @param wishlistId id of the wishlist to delete
+     * @throws NotFoundException if the wishlist doesn't exist or belongs to someone else
+     */
+    public void delete(int userId, int wishlistId){
+        if(!repository.delete(userId, wishlistId)){
+            throw new NotFoundException(NOT_FOUND);
+        }
+    }
+
+    /**
      * Gets a wishlist the user is allowed to see: one they own, or one shared with them.
      *
      * @param userId     id of the logged-in user
