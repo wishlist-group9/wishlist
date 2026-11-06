@@ -18,7 +18,6 @@ Tekniske krav: JDK 21, MySQL lokalt.
    `git clone https://github.com/wishlist-group9/wishlist.git`
 2. Sæt dit MySQL password én gang (i din foretrukne terminal), derefter genstart IntelliJ:
    `setx DEV_PASSWORD "ditkodeord"`
-3. Kør `WishlistApplication` → http://localhost:8080 bør vise "Database: OK"
 
 `wishlist` databasen bliver oprettet automatisk ved første kørsel.
 Bruger du en anden MySQL bruger eller URL? Indsæt også `DEV_USERNAME` / `DEV_DATABASE_URL`.
