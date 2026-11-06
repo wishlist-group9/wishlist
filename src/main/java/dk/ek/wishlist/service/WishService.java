@@ -7,6 +7,7 @@ import dk.ek.wishlist.repository.WishlistRepository;
 import org.springframework.stereotype.Service;
 import dk.ek.wishlist.exception.InvalidInputException;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -55,6 +56,35 @@ public class WishService {
      */
     public List<Wish> getWishes(int wishlistId) {
         return wishRepository.findByWishlistId(wishlistId);
+    }
+
+    /**
+     * Returns the wishes for a wishlist in the requested order
+     * When sorting by price, wishes without a price appear last in both directions
+     *
+     * @param wishlistId the id of the wishlist
+     * @param sort the sort option: {@code price-asc} for lowest price first or
+     *             {@code price-desc} for highest price first. Other values
+     *             preserve the original order
+     * @return the wishes in the requested order, or an empty list if there are no wishes
+     */
+    public List<Wish> getWishes(int wishlistId, String sort){
+        List<Wish> wishes = getWishes(wishlistId);
+
+        Comparator<Double> priceOrder = switch(sort){
+            case "price-asc" -> Comparator.naturalOrder();
+            case "price-desc" -> Comparator.reverseOrder();
+            default -> null;
+        };
+
+        if (priceOrder == null){
+            return wishes;
+        }
+
+        return wishes.stream()
+                .sorted(Comparator.comparing(
+                        Wish::getPrice, Comparator.nullsLast(priceOrder)))
+                .toList();
     }
 
     /**
