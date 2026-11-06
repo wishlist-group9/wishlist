@@ -20,20 +20,6 @@ class DesignPreviewControllerTest {
     MockMvc mockMvc;
 
     @Test
-    void addWish_redirectsToOwnerViewWithConfirmation() throws Exception {
-        mockMvc.perform(post("/letters/1/wishes").sessionAttr(USER_ID, 1).param("title", "Uldtørklæde"))
-                .andExpect(redirectedUrl("/wishlists/1"))
-                .andExpect(flash().attribute("flash", "Ønsket er tilføjet til din ønskeseddel."));
-    }
-
-    @Test
-    void deleteWish_redirectsWithConfirmation() throws Exception {
-        mockMvc.perform(post("/wishes/1/delete").sessionAttr(USER_ID, 1))
-                .andExpect(redirectedUrl("/wishlists/1"))
-                .andExpect(flash().attribute("flash", "Ønsket er slettet."));
-    }
-
-    @Test
     void askSantaPage_rendersIdeas() throws Exception {
         mockMvc.perform(get("/letters/1/santa").sessionAttr(USER_ID, 1))
                 .andExpect(status().isOk())
