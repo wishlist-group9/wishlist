@@ -93,6 +93,22 @@ public class WishlistRepositoryTest {
     }
 
     @Test
+    void delete_ownList_removesWishlistAndItsWishes(){
+        int wishlistId = repository.save(OWNER_ID, "Jul 2026", "token-1");
+        jdbcTemplate.update(
+                "INSERT INTO wish (wishlist_id, title) VALUES (?, ?)", wishlistId, "Bog");
+        jdbcTemplate.update(
+                "INSERT INTO wish (wishlist_id, title) VALUES (?, ?)", wishlistId, "Hue");
+
+        boolean deleted = repository.delete(OWNER_ID, wishlistId);
+
+        assertTrue(deleted);
+        assertTrue(repository.findById(wishlistId).isEmpty());
+        assertEquals(0, jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM wish WHERE wishlist_id = ?", Integer.class, wishlistId));
+    }
+
+    @Test
     void findById_existingList_returnsAllValues() {
         int id = repository.save(OWNER_ID, "Jul 2026", "token-1");
 

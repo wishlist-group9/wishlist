@@ -112,6 +112,16 @@ public class WishlistServiceTest {
     }
 
     @Test
+    void delete_unknownList_throwsNotFound(){
+        int userId = 1;
+        int wishlistId = 999;
+        when(repository.delete(userId, wishlistId)).thenReturn(false);
+
+        assertThrows(NotFoundException.class,
+                () -> service.delete(userId, wishlistId));
+    }
+
+    @Test
     void getVisibleWishlist_ownList_returnsItWithoutCheckingShares() {
         Wishlist list = new Wishlist(5, 1, "Jul 2026", "token-1");
         when(repository.findById(5)).thenReturn(Optional.of(list));

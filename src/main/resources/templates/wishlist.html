@@ -38,6 +38,7 @@
                     Tilføj ønske
                 </a>
                 <a class="btn btn-snow" href="#edit-letter" th:if="${owner}">Redigér navn</a>
+                <a class="btn btn-snow" href="#delete-letter" th:if="${owner}">Slet ønskeseddel</a>
                 <details class="share" th:if="${owner}">
                     <summary class="btn btn-snow">
                         <svg th:replace="~{fragments/icons :: link}"></svg>
@@ -111,6 +112,7 @@
 <th:block th:if="${owner}">
     <div th:replace="~{fragments/modals :: wish-form('add-wish', 'Tilføj et ønske', @{/wishlists/{id}/wishes(id=${wishlist.id})}, 'Tilføj ønske', true, '', '', '', '', 'play', false, '')}"></div>
     <div th:replace="~{fragments/modals :: edit-letter(${wishlist.id}, ${wishlist.title})}"></div>
+    <div th:replace="~{fragments/modals :: delete-letter(${wishlist.id})}"></div>
 </th:block>
 
 </body>
