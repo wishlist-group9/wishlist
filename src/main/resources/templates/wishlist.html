@@ -77,10 +77,11 @@
 
         <form class="sort" method="get">
             <label for="sort">Sortér</label>
-            <select class="select select-small" id="sort" name="sort">
-                <option value="wanted">Øverst på listen først</option>
-                <option value="price-asc">Pris: lav til høj</option>
-                <option value="price-desc">Pris: høj til lav</option>
+            <select class="select select-small" id="sort" name="sort"
+                onchange="this.form.requestSubmit()">
+                <option value="default" th:selected="${sort == 'default'}">Standard</option>
+                <option value="price-asc" th:selected="${sort == 'price-asc'}">Pris: lav til høj</option>
+                <option value="price-desc" th:selected="${sort == 'price-desc'}">Pris: høj til lav</option>
             </select>
         </form>
     </section>
