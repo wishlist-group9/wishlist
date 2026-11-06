@@ -45,7 +45,9 @@
                     </summary>
                     <div class="share-panel">
                         <label for="share-link">Send linket til familie og venner</label>
-                        <input class="input" id="share-link" type="text" readonly value="https://santa-claude.example/s/7f3a9c">
+                        <input class="input" id="share-link" type="text" readonly
+                               value="https://santa-claude.example/s/7f3a9c" th:value="${shareLink}">
+                        <p class="muted">Alle med linket kan se ønskesedlen og reservere ønsker, når de er logget ind.</p>
                     </div>
                 </details>
             </div>

@@ -117,4 +117,25 @@ public class WishlistService {
     public List<WishlistSummary> getSharedWishlists(int userId) {
         return repository.findSharedWith(userId);
     }
+
+    /**
+     * Opens a share link: gives the user access to the wishlist the link points to.
+     * Opening the same link again, or opening your own list's link, changes nothing.
+     *
+     * @param userId     id of the logged-in user who opened the link
+     * @param shareToken the token from the link
+     * @return the id of the wishlist, so the caller can show it
+     * @throws NotFoundException if no wishlist has that token
+     */
+    public int openShareLink(int userId, String shareToken) {
+        Wishlist wishlist = repository.findByShareToken(shareToken)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND));
+
+        boolean isOwner = wishlist.getUserId() == userId;
+        if (!isOwner && !repository.isSharedWith(wishlist.getId(), userId)) {
+            repository.addShare(wishlist.getId(), userId);
+        }
+        return wishlist.getId();
+    }
+
 }

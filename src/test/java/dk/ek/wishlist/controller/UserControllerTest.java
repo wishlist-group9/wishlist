@@ -11,7 +11,7 @@
     import org.springframework.test.web.servlet.MockMvc;
 
     import static org.hamcrest.Matchers.containsString;
-    import static org.junit.jupiter.api.Assertions.assertTrue;
+    import static org.junit.jupiter.api.Assertions.*;
     import static org.mockito.Mockito.when;
     import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
     import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -78,5 +78,43 @@
                     .andExpect(redirectedUrl("/login"));
 
             assertTrue(session.isInvalid());
+        }
+
+        @Test
+        void shouldRedirectBackToShareLinkAfterLogin() throws Exception {
+            // Arrange: the user opened a share link before logging in
+            User user = new User(2, "Test Gæst", "gaest@test.dk", "hash");
+            when(userService.login("gaest@test.dk", "1234")).thenReturn(user);
+            MockHttpSession session = new MockHttpSession();
+            session.setAttribute(WishlistController.PENDING_SHARE_TOKEN, "token-1");
+
+            // Act + Assert
+            mockMvc.perform(post("/login")
+                            .session(session)
+                            .param("email", "gaest@test.dk")
+                            .param("password", "1234"))
+                    .andExpect(redirectedUrl("/s/token-1"));
+
+            // The token is used once, then forgotten
+            assertNull(session.getAttribute(WishlistController.PENDING_SHARE_TOKEN));
+        }
+
+        @Test
+        void shouldKeepShareLinkWhenLoginFails() throws Exception {
+            // Arrange
+            when(userService.login("gaest@test.dk", "forkert"))
+                    .thenThrow(new InvalidLoginException("Forkert e-mail eller adgangskode"));
+            MockHttpSession session = new MockHttpSession();
+            session.setAttribute(WishlistController.PENDING_SHARE_TOKEN, "token-1");
+
+            // Act + Assert
+            mockMvc.perform(post("/login")
+                            .session(session)
+                            .param("email", "gaest@test.dk")
+                            .param("password", "forkert"))
+                    .andExpect(view().name("login"));
+
+            // Still there, so the next attempt can go back to the link
+            assertEquals("token-1", session.getAttribute(WishlistController.PENDING_SHARE_TOKEN));
         }
     }

@@ -161,4 +161,47 @@ public class WishlistServiceTest {
 
         assertEquals(lists, service.getSharedWishlists(1));
     }
+
+    @Test
+    void openShareLink_newGuest_addsShareAndReturnsListId() {
+        when(repository.findByShareToken("token-1"))
+                .thenReturn(Optional.of(new Wishlist(5, 1, "Jul 2026", "token-1")));
+        when(repository.isSharedWith(5, 2)).thenReturn(false);
+
+        int id = service.openShareLink(2, "token-1");
+
+        assertEquals(5, id);
+        verify(repository).addShare(5, 2);
+    }
+
+    @Test
+    void openShareLink_alreadyShared_doesNotAddAgain() {
+        when(repository.findByShareToken("token-1"))
+                .thenReturn(Optional.of(new Wishlist(5, 1, "Jul 2026", "token-1")));
+        when(repository.isSharedWith(5, 2)).thenReturn(true);
+
+        assertEquals(5, service.openShareLink(2, "token-1"));
+        verify(repository, never()).addShare(anyInt(), anyInt());
+    }
+
+    @Test
+    void openShareLink_owner_doesNotShareWithThemselves() {
+        when(repository.findByShareToken("token-1"))
+                .thenReturn(Optional.of(new Wishlist(5, 1, "Jul 2026", "token-1")));
+
+        assertEquals(5, service.openShareLink(1, "token-1"));
+        verify(repository, never()).isSharedWith(anyInt(), anyInt());
+        verify(repository, never()).addShare(anyInt(), anyInt());
+    }
+
+    @Test
+    void openShareLink_unknownToken_throwsNotFoundAndSharesNothing() {
+        when(repository.findByShareToken("findes-ikke")).thenReturn(Optional.empty());
+
+        NotFoundException e = assertThrows(NotFoundException.class,
+                () -> service.openShareLink(2, "findes-ikke"));
+
+        assertEquals(WishlistService.NOT_FOUND, e.getMessage());
+        verify(repository, never()).addShare(anyInt(), anyInt());
+    }
 }

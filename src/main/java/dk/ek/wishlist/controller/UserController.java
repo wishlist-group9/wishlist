@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriUtils;
+
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -109,6 +112,13 @@ public class UserController {
 
             session.setAttribute("userId", user.getId());
             session.setAttribute("userName", user.getName());   // shown in the topbar and greeting
+
+            // Opened a share link before logging in? Then go back to it (see WishlistController.openShareLink)
+            String pendingToken = (String) session.getAttribute(WishlistController.PENDING_SHARE_TOKEN);
+            if (pendingToken != null) {
+                session.removeAttribute(WishlistController.PENDING_SHARE_TOKEN);
+                return "redirect:/s/" + UriUtils.encodePathSegment(pendingToken, StandardCharsets.UTF_8);
+            }
             return "redirect:/letters";
 
         } catch (InvalidLoginException e) {

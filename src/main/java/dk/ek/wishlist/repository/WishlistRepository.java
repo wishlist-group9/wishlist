@@ -24,10 +24,10 @@ public class WishlistRepository {
 
     private static final String INSERT_WISHLIST = "INSERT INTO wishlist (user_id, title, share_token) VALUES (?,?,?)";
     private static final String UPDATE_TITLE = "UPDATE wishlist SET title = ? WHERE id = ? AND user_id = ?";
-    private static final String SELECT_BY_ID =
-            "SELECT id, user_id, title, share_token FROM wishlist WHERE id = ?";
-    private static final String IS_SHARED_WITH =
-            "SELECT COUNT(*) FROM wishlist_share WHERE wishlist_id = ? AND user_id = ?";
+    private static final String SELECT_BY_ID = "SELECT id, user_id, title, share_token FROM wishlist WHERE id = ?";
+    private static final String IS_SHARED_WITH = "SELECT COUNT(*) FROM wishlist_share WHERE wishlist_id = ? AND user_id = ?";
+    private static final String SELECT_BY_SHARE_TOKEN = "SELECT id, user_id, title, share_token FROM wishlist WHERE share_token = ?";
+    private static final String INSERT_SHARE = "INSERT INTO wishlist_share (wishlist_id, user_id) VALUES (?, ?)";
 
     // Overview queries: one row per wishlist with the owner's name and the number of wishes.
     // LEFT JOIN keeps lists without wishes (COUNT gives 0 for them).
@@ -50,6 +50,14 @@ public class WishlistRepository {
             GROUP BY w.id, w.title, u.name
             ORDER BY w.id
             """;
+
+    /** Turns one row from the wishlist table into a Wishlist. Shared by every query that reads whole wishlists. */
+    private static final RowMapper<Wishlist> WISHLIST_MAPPER = (rs, rowNum) -> new Wishlist(
+            rs.getInt("id"),
+            rs.getInt("user_id"),
+            rs.getString("title"),
+            rs.getString("share_token")
+    );
 
     private static final RowMapper<WishlistSummary> SUMMARY_MAPPER = (rs, rowNum) -> new WishlistSummary(
             rs.getInt("id"),
@@ -141,12 +149,7 @@ public class WishlistRepository {
      * @return the wishlist, or an empty {@code Optional} if no wishlist has that id
      */
     public Optional<Wishlist> findById(int wishlistId) {
-        return jdbcTemplate.query(SELECT_BY_ID, (rs, rowNum) -> new Wishlist(
-                rs.getInt("id"),
-                rs.getInt("user_id"),
-                rs.getString("title"),
-                rs.getString("share_token")
-        ), wishlistId).stream().findFirst();
+        return jdbcTemplate.query(SELECT_BY_ID, WISHLIST_MAPPER, wishlistId).stream().findFirst();
     }
 
     /**
@@ -179,5 +182,27 @@ public class WishlistRepository {
      */
     public List<WishlistSummary> findSharedWith(int userId) {
         return jdbcTemplate.query(SELECT_SHARED_WITH, SUMMARY_MAPPER, userId);
+    }
+
+    /**
+     * Finds the wishlist a share link points to.
+     *
+     * @param shareToken the token from the share link
+     * @return the wishlist, or an empty {@code Optional} if no wishlist has that token
+     */
+    public Optional<Wishlist> findByShareToken(String shareToken) {
+        return jdbcTemplate.query(SELECT_BY_SHARE_TOKEN, WISHLIST_MAPPER, shareToken).stream().findFirst();
+    }
+
+    /**
+     * Shares a wishlist with a user, so it shows up under "Delt med dig" and they may open it.
+     *
+     * @param wishlistId id of the wishlist
+     * @param userId     id of the user it is shared with
+     * @throws org.springframework.dao.DataIntegrityViolationException
+     *         if it is already shared with the user, or the list or user doesn't exist
+     */
+    public void addShare(int wishlistId, int userId) {
+        jdbcTemplate.update(INSERT_SHARE, wishlistId, userId);
     }
 }
