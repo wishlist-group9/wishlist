@@ -38,19 +38,11 @@
                     Tilføj ønske
                 </a>
                 <a class="btn btn-snow" href="#edit-letter" th:if="${owner}">Redigér navn</a>
+                <a class="btn btn-snow" href="#share-letter" th:if="${owner}">
+                    <svg th:replace="~{fragments/icons :: link}"></svg>
+                    Del ønskeseddel
+                </a>
                 <a class="btn btn-snow" href="#delete-letter" th:if="${owner}">Slet ønskeseddel</a>
-                <details class="share" th:if="${owner}">
-                    <summary class="btn btn-snow">
-                        <svg th:replace="~{fragments/icons :: link}"></svg>
-                        Del ønskeseddel
-                    </summary>
-                    <div class="share-panel">
-                        <label for="share-link">Send linket til familie og venner</label>
-                        <input class="input" id="share-link" type="text" readonly
-                               value="https://santa-claude.example/s/7f3a9c" th:value="${shareLink}">
-                        <p class="muted">Alle med linket kan se ønskesedlen og reservere ønsker, når de er logget ind.</p>
-                    </div>
-                </details>
             </div>
         </div>
         <svg th:replace="~{fragments/layout :: deer-right}"></svg>
@@ -113,6 +105,26 @@
     <div th:replace="~{fragments/modals :: wish-form('add-wish', 'Tilføj et ønske', @{/wishlists/{id}/wishes(id=${wishlist.id})}, 'Tilføj ønske', true, '', '', '', '', 'play', false, '')}"></div>
     <div th:replace="~{fragments/modals :: edit-letter(${wishlist.id}, ${wishlist.title})}"></div>
     <div th:replace="~{fragments/modals :: delete-letter(${wishlist.id})}"></div>
+    <div id="share-letter" class="modal">
+        <div class="modal-box" role="dialog" aria-modal="true"
+             aria-labelledby="share-letter-title">
+            <a class="btn btn-icon modal-close" href="#" aria-label="Luk">
+                <svg th:replace="~{fragments/layout :: icon-close}"></svg>
+            </a>
+
+            <h2 id="share-letter-title" class="modal-title">Del ønskeseddel</h2>
+
+            <div class="field">
+                <label for="share-link">Send linket til familie og venner</label>
+                <input class="input" id="share-link" type="text" readonly
+                       th:value="${shareLink}">
+            </div>
+
+            <p class="modal-text">
+                Alle med linket kan se ønskesedlen og reservere ønsker, når de er logget ind.
+            </p>
+        </div>
+    </div>
 </th:block>
 
 </body>
