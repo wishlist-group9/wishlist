@@ -18,6 +18,8 @@ public class WishController {
 
     private final WishService wishService;
 
+    private static final String LIST_PAGE = "redirect:/wishlists/";
+
     /**
      * Creates a controller with the given service
      * @param wishService used to handle wish operations
@@ -167,5 +169,60 @@ public class WishController {
 
         redirectAttributes.addFlashAttribute("flash", "Ønsket blev slettet.");
         return "redirect:/wishlists/" + wishlistId;
+    }
+
+    /**
+     * Reserves a wish for the logged-in guest.
+     *
+     * @param wishlistId         id of the wishlist, from the URL
+     * @param wishId             id of the wish, from the URL
+     * @param userId             id of the logged-in user, or {@code null} if nobody is logged in
+     * @param redirectAttributes carries the confirmation or error message across the redirect
+     * @return a redirect back to the wishlist, or to login
+     * @throws NotFoundException shown as the 404 page if the list isn't shared with the user
+     */
+    @PostMapping("/wishlists/{wishlistId}/wishes/{wishId}/reserve")
+    public String reserve(@PathVariable int wishlistId,
+                          @PathVariable int wishId,
+                          @SessionAttribute(name = "userId", required = false) Integer userId,
+                          RedirectAttributes redirectAttributes) {
+        if (userId == null) {
+            return "redirect:/login";
+        }
+        try {
+            wishService.reserve(wishId, wishlistId, userId);
+            redirectAttributes.addFlashAttribute("flash", "Ønsket er reserveret til dig.");
+        } catch (InvalidInputException e) {
+            // Typically someone else reserved it a moment before
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return LIST_PAGE + wishlistId;
+    }
+
+    /**
+     * Cancels the logged-in guest's own reservation of a wish.
+     *
+     * @param wishlistId         id of the wishlist, from the URL
+     * @param wishId             id of the wish, from the URL
+     * @param userId             id of the logged-in user, or {@code null} if nobody is logged in
+     * @param redirectAttributes carries the confirmation or error message across the redirect
+     * @return a redirect back to the wishlist, or to login
+     * @throws NotFoundException shown as the 404 page if the list isn't shared with the user
+     */
+    @PostMapping("/wishlists/{wishlistId}/wishes/{wishId}/unreserve")
+    public String cancelReservation(@PathVariable int wishlistId,
+                                    @PathVariable int wishId,
+                                    @SessionAttribute(name = "userId", required = false) Integer userId,
+                                    RedirectAttributes redirectAttributes) {
+        if (userId == null) {
+            return "redirect:/login";
+        }
+        try {
+            wishService.cancelReservation(wishId, wishlistId, userId);
+            redirectAttributes.addFlashAttribute("flash", "Din reservation er fortrudt.");
+        } catch (InvalidInputException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return LIST_PAGE + wishlistId;
     }
 }

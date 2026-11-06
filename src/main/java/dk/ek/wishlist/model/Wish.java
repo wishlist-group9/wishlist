@@ -11,6 +11,7 @@ public class Wish {
     private String description;
     private String link;
     private Double price;
+    private Integer reservedBy;   // id of the user who reserved the wish; null = free
 
     /**
      * Creates an empty wish
@@ -89,5 +90,23 @@ public class Wish {
 
     public void setPrice(Double price) {
         this.price = price;
+    }
+
+    public Integer getReservedBy() { return reservedBy;}
+
+    public void setReservedBy(Integer reservedBy) { this.reservedBy = reservedBy;}
+
+    /**
+     * How this wish looks to the given user.
+     *
+     * @param viewerId id of the logged-in user looking at the wish
+     * @return {@code "open"} if nobody has reserved it, {@code "mine"} if the viewer has,
+     *         and {@code "taken"} if someone else has
+     */
+    public String statusFor(int viewerId) {
+        if (reservedBy == null) {
+            return "open";
+        }
+        return reservedBy == viewerId ? "mine" : "taken";
     }
 }

@@ -256,4 +256,62 @@ class WishControllerTest{
 
         verifyNoInteractions(service);
     }
+
+    @Test
+    void reserve_loggedIn_redirectsToListWithConfirmation() throws Exception {
+        mockMvc.perform(post("/wishlists/3/wishes/5/reserve").sessionAttr("userId", 2))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/wishlists/3"))
+                .andExpect(flash().attribute("flash", "Ønsket er reserveret til dig."));
+
+        // Wish id first, then the list: the URL order is the other way round
+        verify(service).reserve(5, 3, 2);
+    }
+
+    @Test
+    void reserve_alreadyReserved_redirectsWithError() throws Exception {
+        doThrow(new InvalidInputException("Ønsket er allerede reserveret."))
+                .when(service).reserve(5, 3, 2);
+
+        mockMvc.perform(post("/wishlists/3/wishes/5/reserve").sessionAttr("userId", 2))
+                .andExpect(redirectedUrl("/wishlists/3"))
+                .andExpect(flash().attribute("errorMessage", "Ønsket er allerede reserveret."))
+                .andExpect(flash().attributeCount(1));
+    }
+
+    @Test
+    void reserve_listNotShared_returns404() throws Exception {
+        doThrow(new NotFoundException("Ønskesedlen findes ikke."))
+                .when(service).reserve(5, 3, 2);
+
+        mockMvc.perform(post("/wishlists/3/wishes/5/reserve").sessionAttr("userId", 2))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void reserve_notLoggedIn_redirectsToLoginAndReservesNothing() throws Exception {
+        mockMvc.perform(post("/wishlists/3/wishes/5/reserve"))
+                .andExpect(redirectedUrl("/login"));
+
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void cancelReservation_loggedIn_redirectsToListWithConfirmation() throws Exception {
+        mockMvc.perform(post("/wishlists/3/wishes/5/unreserve").sessionAttr("userId", 2))
+                .andExpect(redirectedUrl("/wishlists/3"))
+                .andExpect(flash().attribute("flash", "Din reservation er fortrudt."));
+
+        verify(service).cancelReservation(5, 3, 2);
+    }
+
+    @Test
+    void cancelReservation_notYours_redirectsWithError() throws Exception {
+        doThrow(new InvalidInputException("Du har ikke reserveret dette ønske."))
+                .when(service).cancelReservation(5, 3, 2);
+
+        mockMvc.perform(post("/wishlists/3/wishes/5/unreserve").sessionAttr("userId", 2))
+                .andExpect(redirectedUrl("/wishlists/3"))
+                .andExpect(flash().attribute("errorMessage", "Du har ikke reserveret dette ønske."));
+    }
 }

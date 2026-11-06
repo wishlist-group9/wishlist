@@ -88,7 +88,7 @@
     <ul class="grid" aria-label="Ønsker" th:unless="${#lists.isEmpty(wishes)}">
         <li th:each="wish : ${wishes}"
             th:with="price=${wish.price != null ? #numbers.formatDecimal(wish.price, 1, 'POINT', 2, 'COMMA') + ' kr.' : ''}">
-            <article th:replace="~{fragments/cards :: wish-card(${wish.id}, ${wish.title}, ${wish.description}, ${price}, 'play', false, 'open')}"></article>
+            <article th:replace="~{fragments/cards :: wish-card(${wish.id}, ${wish.title}, ${wish.description}, ${price}, 'play', false, ${owner ? 'open' : wish.statusFor(session.userId)})}"></article>
         </li>
     </ul>
 

@@ -31,7 +31,9 @@
             </div>
             <p class="muted" th:if="${wish.description}" th:text="${wish.description}">Beskrivelse</p>
             <div class="detail-actions">
-                <button th:unless="${owner}" class="btn btn-primary" type="button">Reservér</button>
+                <th:block th:unless="${owner}">
+                    <th:block th:replace="~{fragments/cards :: reserve-button(${wish.wishlistId}, ${wish.id}, ${wish.title}, ${wish.statusFor(session.userId)})}"></th:block>
+                </th:block>
                 <th:block th:if="${owner}">
                     <a class="btn btn-outline" href="#" th:href="|#edit-wish-${wish.id}|">Redigér</a>
                     <a class="btn btn-outline" href="#" th:href="|#delete-wish-${wish.id}|">Slet</a>
