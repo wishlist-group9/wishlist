@@ -62,6 +62,7 @@ public class WishlistController {
      *
      * @param id     id of the wishlist, from the URL
      * @param userId id of the logged-in user, or {@code null} if nobody is logged in
+     * @param sort the requested sort option, or {@code default} if none is provided
      * @param model  receives the wishlist, its wishes, whether the user owns it and the share link
      * @return the wishlist page, or a redirect to login
      * @throws dk.ek.wishlist.exception.NotFoundException shown as the 404 page if the list
@@ -70,13 +71,15 @@ public class WishlistController {
     @GetMapping("/wishlists/{id}")
     public String show(@PathVariable int id,
                        @SessionAttribute(name = "userId", required = false) Integer userId,
+                       @RequestParam(name = "sort", defaultValue = "default") String sort,
                        Model model) {
         if (userId == null) {
             return "redirect:/login";
         }
         Wishlist wishlist = wishlistService.getVisibleWishlist(userId, id);
         model.addAttribute("wishlist", wishlist);
-        model.addAttribute("wishes", wishService.getWishes(id));
+        model.addAttribute("wishes", wishService.getWishes(id, sort));
+        model.addAttribute("sort", sort);
 
         boolean owner = wishlist.getUserId() == userId;
         model.addAttribute("owner", owner);
