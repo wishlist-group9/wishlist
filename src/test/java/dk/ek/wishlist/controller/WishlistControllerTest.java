@@ -115,7 +115,7 @@ class WishlistControllerTest {
     @Test
     void show_ownList_rendersOwnerViewWithWishes() throws Exception {
         when(wishlistService.getVisibleWishlist(1, 5)).thenReturn(new Wishlist(5, 1, "Jul 2026", "token-1"));
-        when(wishService.getWishes(5)).thenReturn(List.of(
+        when(wishService.getWishes(5, "default")).thenReturn(List.of(
                 new Wish(1, 5, "Uldtørklæde", "Rødt", "https://example.com", 249.0)));
 
         mockMvc.perform(get("/wishlists/5").sessionAttr("userId", 1))
@@ -137,7 +137,7 @@ class WishlistControllerTest {
     @Test
     void show_sharedList_rendersGuestView() throws Exception {
         when(wishlistService.getVisibleWishlist(2, 5)).thenReturn(new Wishlist(5, 1, "Jul 2026", "token-1"));
-        when(wishService.getWishes(5)).thenReturn(List.of(new Wish(1, 5, "Uldtørklæde", null, null, null)));
+        when(wishService.getWishes(5, "default")).thenReturn(List.of(new Wish(1, 5, "Uldtørklæde", null, null, null)));
 
         mockMvc.perform(get("/wishlists/5").sessionAttr("userId", 2))
                 .andExpect(status().isOk())
@@ -153,7 +153,7 @@ class WishlistControllerTest {
     @Test
     void show_noWishes_showsEmptyState() throws Exception {
         when(wishlistService.getVisibleWishlist(1, 5)).thenReturn(new Wishlist(5, 1, "Jul 2026", "token-1"));
-        when(wishService.getWishes(5)).thenReturn(List.of());
+        when(wishService.getWishes(5, "default")).thenReturn(List.of());
 
         mockMvc.perform(get("/wishlists/5").sessionAttr("userId", 1))
                 .andExpect(status().isOk())
@@ -167,7 +167,7 @@ class WishlistControllerTest {
         mockMvc.perform(get("/wishlists/5").sessionAttr("userId", 1))
                 .andExpect(status().isNotFound());
 
-        verify(wishService, never()).getWishes(anyInt());
+        verifyNoInteractions(wishService);
     }
 
     @Test
