@@ -1,0 +1,217 @@
+package dk.ek.wishlist.service;
+
+import dk.ek.wishlist.exception.InvalidInputException;
+import dk.ek.wishlist.exception.NotFoundException;
+import dk.ek.wishlist.model.Wishlist;
+import dk.ek.wishlist.model.WishlistSummary;
+import dk.ek.wishlist.repository.WishlistRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class WishlistServiceTest {
+    @Mock
+    WishlistRepository repository;
+    @InjectMocks
+    WishlistService service;
+
+    @Test
+    void create_validTitle_savesTrimmedTitleAndNewToken() {
+        when(repository.save(anyInt(), anyString(), anyString())).thenReturn(7);
+        ArgumentCaptor<String> tokenCaptor = ArgumentCaptor.forClass(String.class);
+
+        int id = service.create(1, "  Jul 2026  ");
+
+        assertEquals(7, id);
+        verify(repository).save(eq(1), eq("Jul 2026"), tokenCaptor.capture());
+        assertEquals(36, tokenCaptor.getValue().length());
+    }
+
+    @Test
+    void create_nullTitle_throwsAndSavesNothing() {
+        InvalidInputException e = assertThrows(InvalidInputException.class,
+                () -> service.create(1, null));
+
+        assertEquals(WishlistService.TITLE_REQUIRED, e.getMessage());
+        verify(repository, never()).save(anyInt(), anyString(), anyString());
+    }
+
+    @Test
+    void create_titleTooLong_throwsAndSavesNothing() {
+        InvalidInputException e = assertThrows(InvalidInputException.class,
+                () -> service.create(1, "a".repeat(101)));
+
+        assertEquals(WishlistService.TITLE_TOO_LONG, e.getMessage());
+        verify(repository, never()).save(anyInt(), anyString(), anyString());
+    }
+
+    @Test
+    void create_titleExactly100_isAllowed() {
+        // Arrange
+        when(repository.save(anyInt(), anyString(), anyString())).thenReturn(7);
+        ArgumentCaptor<String> tokenCaptor = ArgumentCaptor.forClass(String.class);
+
+        // Act
+        int id = service.create(1, "a".repeat(100));
+
+        // Assert
+        verify(repository).save(eq(1), eq("a".repeat(100)), anyString());
+    }
+
+    @Test
+    void create_twoLists_getDifferentTokens() {
+        // Arrange
+        when(repository.save(anyInt(), anyString(), anyString())).thenReturn(7, 8);
+        ArgumentCaptor<String> tokenCaptor = ArgumentCaptor.forClass(String.class);
+
+        // Act
+        service.create(1, "Jul 2026");
+        service.create(1, "Fødselsdag");
+
+        // Assert
+        verify(repository, times(2)).save(eq(1), anyString(), tokenCaptor.capture());
+        List<String> tokens = tokenCaptor.getAllValues();
+        assertEquals(2, tokens.size());
+        assertNotEquals(tokens.get(0), tokens.get(1));
+    }
+
+    @Test
+    void rename_validTitle_savesTrimmedTitle() {
+        when(repository.updateTitle(1, 5, "Fødselsdag")).thenReturn(true);
+
+        service.rename(1, 5, "  Fødselsdag  ");
+
+        verify(repository).updateTitle(1, 5, "Fødselsdag");
+    }
+
+    @Test
+    void rename_blankTitle_throwsAndDoesNotUpdate() {
+        InvalidInputException e = assertThrows(InvalidInputException.class,
+                () -> service.rename(1, 5, "   "));
+
+        assertEquals(WishlistService.TITLE_REQUIRED, e.getMessage());
+        verify(repository, never()).updateTitle(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    void rename_notOwnersList_throwsNotFound() {
+        when(repository.updateTitle(1, 5, "Fødselsdag")).thenReturn(false);
+
+        assertThrows(NotFoundException.class, () -> service.rename(1, 5, "Fødselsdag"));
+    }
+
+    @Test
+    void delete_unknownList_throwsNotFound(){
+        int userId = 1;
+        int wishlistId = 999;
+        when(repository.delete(userId, wishlistId)).thenReturn(false);
+
+        assertThrows(NotFoundException.class,
+                () -> service.delete(userId, wishlistId));
+    }
+
+    @Test
+    void getVisibleWishlist_ownList_returnsItWithoutCheckingShares() {
+        Wishlist list = new Wishlist(5, 1, "Jul 2026", "token-1");
+        when(repository.findById(5)).thenReturn(Optional.of(list));
+
+        assertSame(list, service.getVisibleWishlist(1, 5));
+        verify(repository, never()).isSharedWith(anyInt(), anyInt());
+    }
+
+    @Test
+    void getVisibleWishlist_sharedWithUser_returnsIt() {
+        Wishlist list = new Wishlist(5, 1, "Jul 2026", "token-1");
+        when(repository.findById(5)).thenReturn(Optional.of(list));
+        when(repository.isSharedWith(5, 2)).thenReturn(true);
+
+        assertSame(list, service.getVisibleWishlist(2, 5));
+    }
+
+    @Test
+    void getVisibleWishlist_notOwnedOrShared_throwsNotFound() {
+        when(repository.findById(5)).thenReturn(Optional.of(new Wishlist(5, 1, "Jul 2026", "token-1")));
+        when(repository.isSharedWith(5, 2)).thenReturn(false);
+
+        NotFoundException e = assertThrows(NotFoundException.class,
+                () -> service.getVisibleWishlist(2, 5));
+        assertEquals(WishlistService.NOT_FOUND, e.getMessage());
+    }
+
+    @Test
+    void getVisibleWishlist_unknownId_throwsNotFound() {
+        when(repository.findById(5)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> service.getVisibleWishlist(1, 5));
+    }
+
+    @Test
+    void getOwnWishlists_returnsTheRepositorysLists() {
+        List<WishlistSummary> lists = List.of(new WishlistSummary(5, "Jul 2026", "Test Ejer", 2));
+        when(repository.findOwnedBy(1)).thenReturn(lists);
+
+        assertEquals(lists, service.getOwnWishlists(1));
+    }
+
+    @Test
+    void getSharedWishlists_returnsTheRepositorysLists() {
+        List<WishlistSummary> lists = List.of(new WishlistSummary(7, "Mors liste", "Mor", 4));
+        when(repository.findSharedWith(1)).thenReturn(lists);
+
+        assertEquals(lists, service.getSharedWishlists(1));
+    }
+
+    @Test
+    void openShareLink_newGuest_addsShareAndReturnsListId() {
+        when(repository.findByShareToken("token-1"))
+                .thenReturn(Optional.of(new Wishlist(5, 1, "Jul 2026", "token-1")));
+        when(repository.isSharedWith(5, 2)).thenReturn(false);
+
+        int id = service.openShareLink(2, "token-1");
+
+        assertEquals(5, id);
+        verify(repository).addShare(5, 2);
+    }
+
+    @Test
+    void openShareLink_alreadyShared_doesNotAddAgain() {
+        when(repository.findByShareToken("token-1"))
+                .thenReturn(Optional.of(new Wishlist(5, 1, "Jul 2026", "token-1")));
+        when(repository.isSharedWith(5, 2)).thenReturn(true);
+
+        assertEquals(5, service.openShareLink(2, "token-1"));
+        verify(repository, never()).addShare(anyInt(), anyInt());
+    }
+
+    @Test
+    void openShareLink_owner_doesNotShareWithThemselves() {
+        when(repository.findByShareToken("token-1"))
+                .thenReturn(Optional.of(new Wishlist(5, 1, "Jul 2026", "token-1")));
+
+        assertEquals(5, service.openShareLink(1, "token-1"));
+        verify(repository, never()).isSharedWith(anyInt(), anyInt());
+        verify(repository, never()).addShare(anyInt(), anyInt());
+    }
+
+    @Test
+    void openShareLink_unknownToken_throwsNotFoundAndSharesNothing() {
+        when(repository.findByShareToken("findes-ikke")).thenReturn(Optional.empty());
+
+        NotFoundException e = assertThrows(NotFoundException.class,
+                () -> service.openShareLink(2, "findes-ikke"));
+
+        assertEquals(WishlistService.NOT_FOUND, e.getMessage());
+        verify(repository, never()).addShare(anyInt(), anyInt());
+    }
+}

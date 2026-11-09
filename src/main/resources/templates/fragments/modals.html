@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<!--
+    Modals. For now they open with plain links (href="#add-wish") and the CSS
+    :target selector, so no JavaScript is needed. Close = link back to "#".
+    The browser's back button also closes them.
+
+    Later, with htmx: load the fragment into the page with hx-get and give the
+    .modal element the class "is-open" instead of relying on :target.
+-->
+<body>
+
+<!--
+    Details for one wish. Opened from its card with #wish-detail-<id>.
+    Guests can reserve; the owner can edit.
+-->
+<div th:fragment="wish-detail(wish)" th:id="|wish-detail-${wish.id}|" class="modal">
+    <div class="modal-box modal-box-wide" role="dialog" aria-modal="true"
+         th:attr="aria-labelledby=|wish-detail-title-${wish.id}|">
+        <a class="btn btn-icon modal-close" href="#" aria-label="Luk">
+            <svg th:replace="~{fragments/layout :: icon-close}"></svg>
+        </a>
+        <div class="detail-image tile tile-large tile-play">
+            <svg th:replace="~{fragments/icons :: category('play')}"></svg>
+        </div>
+        <div class="detail-body">
+            <div class="detail-head">
+                <h2 class="detail-title" th:id="|wish-detail-title-${wish.id}|" th:text="${wish.title}">Ønske</h2>
+                <span class="detail-price" th:if="${wish.price != null}"
+                      th:text="|${#numbers.formatDecimal(wish.price, 1, 'POINT', 2, 'COMMA')} kr.|">0 kr.</span>
+            </div>
+            <p class="muted" th:if="${wish.description}" th:text="${wish.description}">Beskrivelse</p>
+            <div class="detail-actions">
+                <th:block th:unless="${owner}">
+                    <th:block th:replace="~{fragments/cards :: reserve-button(${wish.wishlistId}, ${wish.id}, ${wish.title}, ${wish.statusFor(session.userId)})}"></th:block>
+                </th:block>
+                <th:block th:if="${owner}">
+                    <a class="btn btn-outline" href="#" th:href="|#edit-wish-${wish.id}|">Redigér</a>
+                    <a class="btn btn-outline" href="#" th:href="|#delete-wish-${wish.id}|">Slet</a>
+                </th:block>
+                <a th:if="${wish.link}" class="btn btn-outline" th:href="${wish.link}" target="_blank" rel="noopener">
+                    Gå til butik
+                    <svg th:replace="~{fragments/icons :: external}"></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--
+    The wish form, used both for adding and for editing a wish.
+    modalId:   'add-wish', or 'edit-wish-<id>' for one wish (the #link that opens it)
+    heading:   title at the top
+    action:    where the form is sent
+    submit:    text on the red button
+    showHelp:  true shows the "Let Santa Claude help" banner (only when adding)
+    the rest:  the current values ('' when adding)
+
+    Errors: when the controller flashes formError, it also flashes formErrorFor = the
+    modalId it belongs to, so only that modal shows the message.
+-->
+<div th:fragment="wish-form(modalId, heading, action, submit, showHelp, title, price, shop, url, category, top, note)"
+     th:id="${modalId}" class="modal">
+    <form class="modal-box" role="dialog" aria-modal="true" th:attr="aria-labelledby=|${modalId}-title|"
+          method="post" th:action="${action}">
+        <a class="btn btn-icon modal-close" href="#" aria-label="Luk">
+            <svg th:replace="~{fragments/layout :: icon-close}"></svg>
+        </a>
+        <h2 class="modal-title" th:id="|${modalId}-title|" th:text="${heading}">Tilføj et ønske</h2>
+        <p class="field-error" role="alert" th:if="${formErrorFor == modalId}" th:text="${formError}">Ønsket skal have en titel.</p>
+
+        <a th:if="${showHelp}" class="santa-help" href="/letters/1/santa" th:href="@{/letters/{id}/santa(id=1)}">
+            <svg width="34" height="30" viewBox="300 138 90 44" aria-hidden="true">
+                <path class="hat-red" d="M307 176 Q318 140 350 142 Q372 146 380 170 L372 176 Z"/>
+                <circle class="hat-trim-dark" cx="381" cy="172" r="7"/>
+                <rect class="hat-trim-dark" x="303" y="168" width="56" height="11" rx="5.5"/>
+            </svg>
+            <span class="santa-help-text">
+                <strong>Ved du ikke, hvad du skal ønske dig?</strong>
+                <span>Lad Santa Claude hjælpe →</span>
+            </span>
+        </a>
+
+        <label class="field">
+            Hvad ønsker du dig?
+            <input class="input" type="text" name="title" required th:value="${title}" placeholder="fx Uldtørklæde, mørkegrøn">
+        </label>
+        <div class="field-row">
+            <label class="field">
+                Pris (kr.)
+                <input class="input" type="number" name="price" min="0" step="0.01" th:value="${price}" placeholder="0">
+            </label>
+            <label class="field">
+                Butik
+                <input class="input" type="text" name="shop" th:value="${shop}" placeholder="Hvor kan den købes?">
+            </label>
+        </div>
+        <label class="field">
+            Link
+            <input class="input" type="url" name="link" th:value="${url}" placeholder="https://">
+        </label>
+        <label class="field">
+            Kategori
+            <select class="select" name="category">
+                <option value="play" th:selected="${category == 'play'}">Gave / oplevelse</option>
+                <option value="tech" th:selected="${category == 'tech'}">Elektronik</option>
+                <option value="book" th:selected="${category == 'book'}">Bøger</option>
+                <option value="wear" th:selected="${category == 'wear'}">Tøj</option>
+                <option value="home" th:selected="${category == 'home'}">Hjem</option>
+            </select>
+        </label>
+        <label class="field">
+            Note
+            <textarea class="input textarea" name="description" rows="3" th:text="${note}" placeholder="Størrelse, farve eller andet, giveren skal vide"></textarea>
+        </label>
+        <label class="check">
+            <input type="checkbox" name="top" th:checked="${top}">
+            Øverst på listen
+        </label>
+        <div class="form-actions">
+            <a class="btn btn-outline" href="#">Annullér</a>
+            <button class="btn btn-primary" type="submit" th:text="${submit}">Tilføj ønske</button>
+        </div>
+    </form>
+</div>
+
+<!--
+    "Are you sure?" before deleting a wish (owner only). One per wish, opened with #delete-wish-<id>.
+    wish: the wish to delete (its id, wishlistId and title are used)
+-->
+<div th:fragment="delete-wish(wish)" th:id="|delete-wish-${wish.id}|" class="modal">
+    <form class="modal-box" role="alertdialog" aria-modal="true"
+          th:attr="aria-labelledby=|delete-wish-title-${wish.id}|, aria-describedby=|delete-wish-text-${wish.id}|"
+          method="post" th:action="@{/wishlists/{l}/wishes/{w}/delete(l=${wish.wishlistId}, w=${wish.id})}">
+        <h2 class="modal-title" th:id="|delete-wish-title-${wish.id}|">Slet ønsket?</h2>
+        <p class="modal-text" th:id="|delete-wish-text-${wish.id}|">
+            <strong th:text="${wish.title}">Støjreducerende høretelefoner</strong> bliver fjernet fra din ønskeseddel.
+            Det kan ikke fortrydes.
+        </p>
+        <div class="form-actions">
+            <a class="btn btn-outline" href="#" th:href="|#wish-detail-${wish.id}|">Annullér</a>
+            <button class="btn btn-primary" type="submit">Slet ønske</button>
+        </div>
+    </form>
+</div>
+
+<!--
+    Confirms deletion of a wishlist and all its wishes (owner only)
+    Opened with #delete-letter
+    wishlistId: the ID of the wishlist to delete
+-->
+<div th:fragment="delete-letter(wishlistId)" id="delete-letter" class="modal">
+    <form class="modal-box" role="alertdialog" aria-modal="true"
+          aria-labelledby="delete-letter-title" aria-describedby="delete-letter-text"
+          method="post" th:action="@{/wishlists/{id}/delete(id=${wishlistId})}">
+        <h2 class="modal-title" id="delete-letter-title">Slet ønskesedlen?</h2>
+        <p class="modal-text" id="delete-letter-text">
+            Ønskesedlen og alle dens ønsker bliver slettet permanent.
+            Det kan ikke fortrydes.
+        </p>
+        <div class="form-actions">
+            <a class="btn btn-outline" href="#">Annullér</a>
+            <button class="btn btn-primary" type="submit">Slet ønskeseddel</button>
+        </div>
+    </form>
+</div>
+
+<!-- Write a new letter -->
+<div th:fragment="new-letter" id="new-letter" class="modal">
+    <form class="modal-box" role="dialog" aria-modal="true" aria-labelledby="new-letter-title"
+          method="post" th:action="@{/wishlists}">
+        <a class="btn btn-icon modal-close" href="#" aria-label="Luk">
+            <svg th:replace="~{fragments/layout :: icon-close}"></svg>
+        </a>
+        <h2 id="new-letter-title" class="modal-title">Skriv en ny ønskeseddel</h2>
+        <div class="field">
+            <label for="new-letter-name">Navn</label>
+            <input class="input" id="new-letter-name" type="text" name="title" required maxlength="100"
+                   placeholder="fx Jul 2026"
+                   th:attr="aria-invalid=${titleError != null} ? 'true' : null, aria-describedby=${titleError != null} ? 'new-letter-error' : null">
+            <span class="field-error" id="new-letter-error" th:if="${titleError}" th:text="${titleError}">Giv ønskesedlen et navn.</span>
+        </div>
+        <div class="form-actions">
+            <a class="btn btn-outline" href="#">Annullér</a>
+            <button class="btn btn-primary" type="submit">Opret ønskeseddel</button>
+        </div>
+    </form>
+</div>
+
+<!-- Rename a letter. id and title come from the page. -->
+<div th:fragment="edit-letter(id, title)" id="edit-letter" class="modal">
+    <form class="modal-box" role="dialog" aria-modal="true" aria-labelledby="edit-letter-title"
+          method="post" th:action="@{/wishlists/{id}/title(id=${id})}">
+        <a class="btn btn-icon modal-close" href="#" aria-label="Luk">
+            <svg th:replace="~{fragments/layout :: icon-close}"></svg>
+        </a>
+        <h2 id="edit-letter-title" class="modal-title">Redigér navn</h2>
+        <div class="field">
+            <label for="edit-letter-name">Navn</label>
+            <input class="input" id="edit-letter-name" type="text" name="title" required maxlength="100"
+                   th:value="${title}"
+                   th:attr="aria-invalid=${titleError != null} ? 'true' : null, aria-describedby=${titleError != null} ? 'edit-letter-error' : null">
+            <span class="field-error" id="edit-letter-error" th:if="${titleError}" th:text="${titleError}">Giv ønskesedlen et navn.</span>
+        </div>
+        <div class="form-actions">
+            <a class="btn btn-outline" href="#">Annullér</a>
+            <button class="btn btn-primary" type="submit">Gem navn</button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

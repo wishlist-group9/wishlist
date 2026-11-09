@@ -1,0 +1,258 @@
+/* Santa Claude – error pages (404) */
+
+.error-page {
+    --night: #12213d;
+    --night-light: #24406b;
+    --snow: #f7f9fc;
+    --snow-shadow: #d9e2ee;
+    --santa-red: #c8102e;
+    --santa-red-dark: #8f0b20;
+    --pine: #1f6b45;
+    --gold: #e8b923;
+    --skin: #f4c9a8;
+    --cheek: #e8907a;
+    --ink: #1d1d1f;
+    --fur: #8a5a36;
+    --fur-light: #c99b6d;
+    --antler: #d9c3a0;
+    --sleigh-wood: #5b3a24;
+    --sack: #a9824f;
+
+    margin: 0;
+    min-height: 100vh;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--snow);
+    background: linear-gradient(180deg, var(--night) 0%, var(--night-light) 100%);
+}
+
+.error-main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+    text-align: center;
+}
+
+.scene {
+    margin: 0;
+}
+
+.scene svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+}
+
+/* ---------- Text ---------- */
+
+.error-code {
+    margin: 8px 0 0;
+    font-size: clamp(4rem, 14vw, 7rem);
+    line-height: 1;
+    letter-spacing: 0.05em;
+    color: var(--snow);
+    text-shadow: 0 4px 0 var(--santa-red);
+}
+
+.error-title {
+    margin: 8px 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.error-message {
+    max-width: 34rem;
+    margin: 0 auto 24px;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--snow-shadow);
+}
+
+.error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+.button {
+    display: inline-block;
+    padding: 12px 20px;
+    border: 2px solid var(--snow);
+    border-radius: 999px;
+    color: var(--snow);
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.button:hover,
+.button:focus-visible {
+    transform: translateY(-2px);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.button-primary {
+    border-color: var(--santa-red);
+    background-color: var(--santa-red);
+}
+
+.button-primary:hover,
+.button-primary:focus-visible {
+    background-color: var(--santa-red-dark);
+}
+
+/* ---------- Scene colours ---------- */
+
+.stars circle { fill: var(--snow); opacity: 0.8; }
+.snow-ground { fill: var(--snow); }
+.snow-pile { fill: var(--snow-shadow); }
+.footprints ellipse { fill: var(--snow-shadow); }
+
+.fur { fill: var(--fur); }
+.fur-light { fill: var(--fur-light); }
+.legs line { stroke: var(--fur); stroke-width: 6; stroke-linecap: round; }
+.nose { fill: var(--ink); }
+.eye { fill: var(--ink); }
+.antler { fill: none; stroke: var(--antler); stroke-width: 3.5; stroke-linecap: round; }
+
+.suit { fill: var(--santa-red); }
+.trim { fill: var(--snow); }
+.belt { fill: var(--ink); }
+.buckle { fill: none; stroke: var(--gold); stroke-width: 3; }
+.boot { fill: var(--ink); }
+.skin { fill: var(--skin); }
+.cheek { fill: var(--cheek); }
+.beard { fill: var(--snow); }
+.brow { fill: none; stroke: var(--snow-shadow); stroke-width: 3; stroke-linecap: round; }
+.sleeve { fill: none; stroke: var(--santa-red); stroke-width: 14; stroke-linecap: round; }
+.mitten { fill: var(--pine); }
+.handle { stroke: var(--sleigh-wood); stroke-width: 5; stroke-linecap: round; }
+.lens { fill: rgba(200, 230, 255, 0.35); stroke: var(--snow-shadow); stroke-width: 4; }
+
+.runner { fill: none; stroke: var(--gold); stroke-width: 5; stroke-linecap: round; }
+.sleigh-body { fill: var(--santa-red); stroke: var(--santa-red-dark); stroke-width: 2; }
+.sleigh-trim { fill: none; stroke: var(--gold); stroke-width: 4; }
+.sack { fill: var(--sack); }
+.patch { fill: var(--pine); }
+.string { stroke: var(--snow-shadow); stroke-width: 1.5; }
+.tag-card { fill: var(--snow); }
+.tag-text {
+    fill: var(--santa-red);
+    font: 700 11px system-ui, sans-serif;
+    text-anchor: middle;
+    letter-spacing: 0.08em;
+}
+
+.q {
+    fill: var(--gold);
+    font: 800 36px system-ui, sans-serif;
+}
+
+.snow circle { fill: var(--snow); opacity: 0.9; }
+
+.eye-white { fill: var(--snow); stroke: var(--ink); stroke-width: 1.2; }
+.mouth { fill: var(--ink); }
+.cloud { fill: var(--snow); }
+.gift { fill: var(--santa-red); }
+.gift-lid { fill: var(--santa-red-dark); }
+.ribbon { fill: var(--gold); }
+.q-small {
+    fill: var(--gold);
+    font: 800 26px system-ui, sans-serif;
+}
+
+/* ---------- Animation ---------- */
+
+.q, .shrug-left, .shrug-right, .thought, .reindeer-sniff, .reindeer-bob, .santa, .snow circle {
+    transform-box: fill-box;
+}
+
+.q { animation: bob 2.4s ease-in-out infinite; }
+.q2 { animation-delay: 0.4s; }
+.q4 { animation-delay: 1.2s; }
+
+.santa {
+    transform-origin: 50% 100%;
+    animation: ponder 4s ease-in-out infinite;
+}
+
+/* Arms pivot at the shoulder: left shoulder is bottom-right, right shoulder bottom-left */
+.shrug-left {
+    transform-origin: 100% 100%;
+    animation: shrug-left 1.8s ease-in-out infinite;
+}
+
+.shrug-right {
+    transform-origin: 0% 100%;
+    animation: shrug-right 1.8s ease-in-out infinite;
+}
+
+.thought {
+    transform-origin: 0% 100%;
+    animation: float 3.5s ease-in-out infinite;
+}
+
+.reindeer-sniff {
+    transform-origin: 50% 100%;
+    animation: sniff 1.6s ease-in-out infinite;
+}
+
+.reindeer-bob {
+    transform-origin: 50% 100%;
+    animation: bob-small 3s ease-in-out infinite;
+}
+
+.snow circle { animation: fall 7s linear infinite; }
+.snow circle:nth-child(2n) { animation-duration: 9s; animation-delay: -3s; }
+.snow circle:nth-child(3n) { animation-duration: 11s; animation-delay: -6s; }
+.snow circle:nth-child(5n) { animation-delay: -1.5s; }
+
+@keyframes bob {
+    0%, 100% { transform: translateY(0) rotate(-8deg); opacity: 0.6; }
+    50% { transform: translateY(-10px) rotate(8deg); opacity: 1; }
+}
+
+@keyframes bob-small {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+@keyframes ponder {
+    0%, 100% { transform: rotate(-2deg); }
+    50% { transform: rotate(2deg); }
+}
+
+@keyframes shrug-left {
+    0%, 60%, 100% { transform: rotate(0deg); }
+    30% { transform: rotate(8deg) translateY(-3px); }
+}
+
+@keyframes shrug-right {
+    0%, 60%, 100% { transform: rotate(0deg); }
+    30% { transform: rotate(-8deg) translateY(-3px); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+@keyframes sniff {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(4deg); }
+}
+
+@keyframes fall {
+    from { transform: translateY(0); }
+    to { transform: translateY(420px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .error-page *,
+    .error-page *::before,
+    .error-page *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}

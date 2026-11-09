@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<!--
+    Cards for wishes and letters (ønskesedler).
+
+    For now the pages pass sample values straight into these fragments.
+    Later, loop over real objects instead, for example:
+        <li th:each="wish : ${wishes}">
+            <article th:replace="~{fragments/cards :: wish-card(${wish.id}, ${wish.title}, ...)}"></article>
+        </li>
+
+    The wish card reads one variable from the page: "owner" (true when the
+    logged-in user owns the letter). Owners never see reservations.
+
+    Wording: the action is always "Reservér", the state is always "Reserveret".
+-->
+<body>
+
+<!--
+    status: 'open'  = nobody has reserved it
+            'mine'  = reserved by the person looking
+            'taken' = reserved by someone else
+-->
+<article th:fragment="wish-card(id, title, shop, price, category, top, status)" class="wish-card" th:id="|wish-${id}|">
+    <a class="wish-open" href="#wish-detail" th:href="|#wish-detail-${id}|">
+        <div class="tile" th:classappend="|tile-${category}${status == 'taken' and !owner ? ' tile-dimmed' : ''}|">
+            <svg th:replace="~{fragments/icons :: category(${category})}"></svg>
+            <span class="badge badge-top" th:if="${top}">
+                <svg th:replace="~{fragments/icons :: star}"></svg>
+                Øverst på listen
+            </span>
+            <th:block th:unless="${owner}">
+                <span class="badge badge-reserved" th:if="${status == 'taken'}">Reserveret</span>
+                <span class="badge badge-mine" th:if="${status == 'mine'}">Reserveret af dig</span>
+            </th:block>
+        </div>
+        <span class="wish-text">
+            <span class="wish-title" th:text="${title}">Ønske</span>
+            <span class="wish-shop" th:text="${shop}">Butik</span>
+        </span>
+    </a>
+    <div class="wish-footer">
+        <span class="price" th:text="${price}">0 kr.</span>
+        <th:block th:unless="${owner}">
+            <th:block th:replace="~{fragments/cards :: reserve-button(${wishlist.id}, ${id}, ${title}, ${status})}"></th:block>
+        </th:block>
+    </div>
+</article>
+
+<!--
+    The guest's reserve / cancel button for one wish. Used on the card and in the detail modal.
+    status: 'open', 'mine' or 'taken' (from Wish.statusFor). Shows nothing for 'taken' but a label.
+-->
+<th:block th:fragment="reserve-button(wishlistId, wishId, title, status)">
+    <form th:if="${status == 'open'}" method="post"
+          th:action="@{/wishlists/{l}/wishes/{w}/reserve(l=${wishlistId}, w=${wishId})}">
+        <button class="btn btn-outline btn-small" type="submit" th:aria-label="|Reservér ${title}|">Reservér</button>
+    </form>
+    <form th:if="${status == 'mine'}" method="post"
+          th:action="@{/wishlists/{l}/wishes/{w}/unreserve(l=${wishlistId}, w=${wishId})}">
+        <button class="btn btn-outline btn-small" type="submit" th:aria-label="|Fortryd din reservation af ${title}|">Fortryd reservation</button>
+    </form>
+    <span class="taken" th:if="${status == 'taken'}">Reserveret</span>
+</th:block>
+
+<!-- Empty grid: same voice as the error pages -->
+<div th:fragment="no-wishes" class="empty-state">
+    <svg th:replace="~{fragments/icons :: gift('?')}"></svg>
+    <p class="empty-state-title">Ho ho ho … åh nej.</p>
+    <p class="muted">Ingen ønsker her. Prøv et andet filter.</p>
+</div>
+
+<!--
+    One small preview tile on a letter card. category: tech, book, wear, home, play,
+    or '' for an empty tile.
+-->
+<div th:fragment="preview-tile(category)" class="tile tile-small" th:classappend="|tile-${category == '' ? 'empty' : category}|">
+    <th:block th:if="${category != ''}">
+        <svg th:replace="~{fragments/icons :: category(${category})}"></svg>
+    </th:block>
+    <span th:if="${category == ''}" class="tile-dash" aria-hidden="true"></span>
+</div>
+
+<!--
+    One of your own letters. wishCount = number of wishes on it.
+-->
+<a th:fragment="letter-card(id, title, wishCount)" class="letter-card" href="#" th:href="@{/wishlists/{id}(id=${id})}">
+    <div class="letter-previews">
+        <div th:replace="~{fragments/cards :: preview-tile('')}"></div>
+        <div th:replace="~{fragments/cards :: preview-tile('')}"></div>
+        <div th:replace="~{fragments/cards :: preview-tile('')}"></div>
+    </div>
+    <div class="letter-text">
+        <span class="letter-title" th:text="${title}">Ønskeseddel</span>
+        <span class="letter-meta" th:text="${wishCount == 1 ? '1 ønske' : wishCount + ' ønsker'}">0 ønsker</span>
+    </div>
+    <div class="letter-footer">
+        <span>Åbn →</span>
+    </div>
+</a>
+
+<!--
+    A gift idea from Santa Claude.
+    added: true once the user has put it on their letter
+-->
+<article th:fragment="idea-card(title, meta, category, why, added)" class="idea">
+    <div class="tile" th:classappend="|tile-${category}|">
+        <svg th:replace="~{fragments/icons :: category(${category})}"></svg>
+    </div>
+    <span class="idea-title" th:text="${title}">Idé</span>
+    <span class="idea-meta" th:text="${meta}">ca. 249 kr.</span>
+    <p class="idea-why" th:text="${why}">Hvorfor Santa Claude foreslår den.</p>
+    <button th:unless="${added}" class="btn btn-outline btn-small" type="button">
+        <svg th:replace="~{fragments/layout :: icon-plus}"></svg>
+        Tilføj ønske
+    </button>
+    <button th:if="${added}" class="btn btn-pine btn-small" type="button">
+        <svg th:replace="~{fragments/icons :: check}"></svg>
+        På din ønskeseddel
+    </button>
+</article>
+
+<!-- A letter someone shared with you. ownerName = the name of the person who wrote it. -->
+<a th:fragment="shared-letter-card(id, ownerName, title, wishCount)" class="letter-card letter-card-shared" href="#" th:href="@{/wishlists/{id}(id=${id})}">
+    <div class="letter-owner">
+        <span class="avatar avatar-pine" aria-hidden="true" th:text="${ownerName.substring(0, 1).toUpperCase()}">S</span>
+        <span class="letter-text">
+            <span class="letter-title" th:text="${title}">Ønskeseddel</span>
+            <span class="letter-meta" th:text="|Fra ${ownerName} · ${wishCount == 1 ? '1 ønske' : wishCount + ' ønsker'}|">Fra Sara · 0 ønsker</span>
+        </span>
+    </div>
+    <div class="letter-footer">
+        <span>Åbn →</span>
+    </div>
+</a>
+
+</body>
+</html>

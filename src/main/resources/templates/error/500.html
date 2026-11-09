@@ -1,8 +1,100 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="da">
-<head><meta charset="UTF-8"><title>Siden findes ikke</title></head>
-<body>
-<h1>Noget gik galt</h1>
-<p><a th:href="@{/}">Tilbage til forsiden</a></p>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Something broke – Santa Claude</title>
+    <link rel="stylesheet" href="/css/error.css" th:href="@{/css/error.css}">
+</head>
+<body class="error-page">
+<main class="error-main">
+
+    <figure class="scene" aria-hidden="true">
+        <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" role="presentation">
+            <th:block th:replace="~{fragments/error-scene :: sky}"></th:block>
+
+            <th:block th:replace="~{fragments/error-scene :: reindeer-left}"></th:block>
+            <text class="q q1" x="34" y="212">!</text>
+            <th:block th:replace="~{fragments/error-scene :: reindeer-right}"></th:block>
+
+            <!-- Dizzy stars circling the reindeer who crashed the sleigh -->
+            <g transform="translate(4 -28)">
+                <g class="dizzy">
+                    <polygon class="dizzy-star" points="214,196 216,201 221,201 217,204 219,209 214,206 209,209 211,204 207,201 212,201"/>
+                    <polygon class="dizzy-star" points="244,190 246,195 251,195 247,198 249,203 244,200 239,203 241,198 237,195 242,195"/>
+                    <polygon class="dizzy-star" points="230,212 232,217 237,217 233,220 235,225 230,222 225,225 227,220 223,217 228,217"/>
+                </g>
+            </g>
+
+            <!-- Santa with a wrench, sweating a little -->
+            <g class="santa">
+                <th:block th:replace="~{fragments/error-scene :: santa-body}"></th:block>
+                <!-- Hand on hip -->
+                <path class="sleeve" d="M296 240 Q274 252 292 266"/>
+                <circle class="mitten" cx="293" cy="266" r="7"/>
+                <!-- Arm waving the wrench -->
+                <g class="wave-wrench">
+                    <path class="sleeve" d="M364 238 Q392 232 396 206"/>
+                    <line class="wrench" x1="398" y1="200" x2="412" y2="174"/>
+                    <circle class="wrench-head" cx="415" cy="168" r="7"/>
+                    <circle class="mitten" cx="398" cy="202" r="8"/>
+                </g>
+                <th:block th:replace="~{fragments/error-scene :: santa-head}"></th:block>
+                <!-- Worried face -->
+                <circle class="eye" cx="321" cy="190" r="2.4"/>
+                <circle class="eye" cx="339" cy="190" r="2.4"/>
+                <path class="brow" d="M314 183 L326 178"/>
+                <path class="brow" d="M334 178 L346 183"/>
+                <path class="mouth-line" d="M322 218 q4 -3 8 0 t8 0"/>
+                <th:block th:replace="~{fragments/error-scene :: santa-moustache}"></th:block>
+                <path class="sweat" d="M360 182 q5 8 0 11 q-5 -3 0 -11 Z"/>
+            </g>
+
+            <!-- The sleigh, nose-first in the snow -->
+            <g class="sleigh" transform="rotate(10 600 330)">
+                <th:block th:replace="~{fragments/error-scene :: sleigh}"></th:block>
+                <line class="string" x1="640" y1="258" x2="656" y2="282"/>
+                <rect class="tag-card" x="616" y="280" width="100" height="18" rx="3"/>
+                <text class="tag-text" x="666" y="293">OUT OF ORDER</text>
+            </g>
+
+            <!-- Smoke from the crash -->
+            <g class="smoke">
+                <circle cx="560" cy="210" r="12"/>
+                <circle cx="580" cy="196" r="15"/>
+                <circle cx="602" cy="206" r="11"/>
+                <circle cx="590" cy="214" r="9"/>
+            </g>
+
+            <!-- A broken runner and spilled presents -->
+            <path class="runner" d="M732 352 Q760 356 788 346"/>
+            <g class="spilled">
+                <rect class="gift" x="430" y="314" width="22" height="16" rx="2"/>
+                <rect class="ribbon" x="439" y="314" width="4" height="16"/>
+                <g transform="rotate(-18 470 330)">
+                    <rect class="gift" x="460" y="318" width="18" height="14" rx="2"/>
+                    <rect class="ribbon" x="467" y="318" width="4" height="14"/>
+                </g>
+                <rect class="gift-lid" x="744" y="326" width="16" height="12" rx="2"/>
+            </g>
+
+            <th:block th:replace="~{fragments/error-scene :: snowfall}"></th:block>
+        </svg>
+    </figure>
+
+    <section class="error-text">
+        <h1 class="error-code">500</h1>
+        <p class="error-title">The sleigh broke down.</p>
+        <p class="error-message">
+            Something went wrong in Santa's workshop. The elves are already on it,
+            so give it a minute and try again.
+        </p>
+        <nav class="error-actions" aria-label="Where to go next">
+            <a class="button button-primary" href="/" th:href="@{${path ?: '/'}}">Try again</a>
+            <a class="button" href="/" th:href="@{/}">Go to the front page</a>
+        </nav>
+    </section>
+
+</main>
 </body>
 </html>

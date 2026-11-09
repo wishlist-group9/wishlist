@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${wishlist.title})}">
+    <title>Ønskeseddel – Santa Claude</title>
+</head>
+<!--
+    One letter (ønskeseddel). The page reads these from the model:
+      wishlist      -> the Wishlist (id, title, ...)
+      wishes        -> its wishes, oldest first (an empty list when there are none)
+      owner = true  -> the logged-in user wrote this letter: can add, edit and delete wishes,
+                       never sees reservations
+      owner = false -> the letter is shared with the user: can reserve wishes
+      flash         -> optional confirmation after a save ("Ønsket blev oprettet.")
+      errorMessage  -> optional error after a failed save
+-->
+<body th:with="owner=${owner} ?: false">
+
+<div class="sky">
+    <svg th:replace="~{fragments/layout :: sky-decor}"></svg>
+    <header th:replace="~{fragments/layout :: topbar}"></header>
+
+    <section class="container hero">
+        <div class="hero-text">
+            <a class="back-link" href="/letters" th:href="@{/letters}">← Dine ønskesedler</a>
+            <h1 class="hero-title" th:text="${wishlist.title}">Ønskeseddel</h1>
+            <p class="hero-lead">Små ting, store ting – alt er frivilligt. Reservér et ønske, så ingen køber den samme gave to gange.</p>
+        </div>
+
+        <div class="hero-side">
+            <p class="hero-note" th:if="${owner}">
+                <svg th:replace="~{fragments/icons :: eye-off}"></svg>
+                Ingen kiggen: Du kan ikke se, hvad der er reserveret, så overraskelsen holder.
+            </p>
+
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="#add-wish" th:if="${owner}">
+                    <svg th:replace="~{fragments/layout :: icon-plus}"></svg>
+                    Tilføj ønske
+                </a>
+                <a class="btn btn-snow" href="#edit-letter" th:if="${owner}">Redigér navn</a>
+                <a class="btn btn-snow" href="#share-letter" th:if="${owner}">
+                    <svg th:replace="~{fragments/icons :: link}"></svg>
+                    Del ønskeseddel
+                </a>
+                <a class="btn btn-snow" href="#delete-letter" th:if="${owner}">Slet ønskeseddel</a>
+            </div>
+        </div>
+        <svg th:replace="~{fragments/layout :: deer-right}"></svg>
+    </section>
+
+    <svg th:replace="~{fragments/layout :: ground('normal')}"></svg>
+</div>
+
+<main class="container page">
+
+    <th:block th:if="${flash}">
+        <p th:replace="~{fragments/layout :: flash(${flash})}"></p>
+    </th:block>
+
+    <p class="field-error"
+       role="alert"
+       th:if="${errorMessage}"
+       th:text="${errorMessage}">
+    </p>
+
+    <section class="toolbar" aria-label="Filtrér og sortér">
+        <strong th:if="${owner}" th:text="|${#lists.size(wishes)} ønsker på din ønskeseddel|">0 ønsker</strong>
+        <strong th:unless="${owner}" th:text="|${#lists.size(wishes)} ønsker på ønskesedlen|">0 ønsker</strong>
+
+        <form class="sort" method="get">
+            <label for="sort">Sortér</label>
+            <select class="select select-small" id="sort" name="sort"
+                onchange="this.form.requestSubmit()">
+                <option value="default" th:selected="${sort == 'default'}">Standard</option>
+                <option value="price-asc" th:selected="${sort == 'price-asc'}">Pris: lav til høj</option>
+                <option value="price-desc" th:selected="${sort == 'price-desc'}">Pris: høj til lav</option>
+            </select>
+        </form>
+    </section>
+
+    <ul class="grid" aria-label="Ønsker" th:unless="${#lists.isEmpty(wishes)}">
+        <li th:each="wish : ${wishes}"
+            th:with="price=${wish.price != null ? #numbers.formatDecimal(wish.price, 1, 'POINT', 2, 'COMMA') + ' kr.' : ''}">
+            <article th:replace="~{fragments/cards :: wish-card(${wish.id}, ${wish.title}, ${wish.description}, ${price}, 'play', false, ${owner ? 'open' : wish.statusFor(session.userId)})}"></article>
+        </li>
+    </ul>
+
+    <div class="empty-state" th:if="${#lists.isEmpty(wishes)}">
+        <svg th:replace="~{fragments/icons :: gift('?')}"></svg>
+        <p class="empty-state-title">Ho ho … åh nej.</p>
+        <p class="muted" th:if="${owner}">Der er ingen ønsker endnu. Tilføj dit første ønske.</p>
+        <p class="muted" th:unless="${owner}">Der er ingen ønsker på ønskesedlen endnu.</p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<th:block th:each="wish : ${wishes}">
+    <div th:replace="~{fragments/modals :: wish-detail(${wish})}"></div>
+    <th:block th:if="${owner}">
+        <div th:replace="~{fragments/modals :: wish-form(|edit-wish-${wish.id}|, 'Redigér ønske', @{/wishlists/{l}/wishes/{w}/update(l=${wishlist.id}, w=${wish.id})}, 'Gem ændringer', false, ${wish.title}, ${wish.price}, '', ${wish.link}, 'play', false, ${wish.description})}"></div>
+        <div th:replace="~{fragments/modals :: delete-wish(${wish})}"></div>
+    </th:block>
+</th:block>
+<th:block th:if="${owner}">
+    <div th:replace="~{fragments/modals :: wish-form('add-wish', 'Tilføj et ønske', @{/wishlists/{id}/wishes(id=${wishlist.id})}, 'Tilføj ønske', true, '', '', '', '', 'play', false, '')}"></div>
+    <div th:replace="~{fragments/modals :: edit-letter(${wishlist.id}, ${wishlist.title})}"></div>
+    <div th:replace="~{fragments/modals :: delete-letter(${wishlist.id})}"></div>
+    <div id="share-letter" class="modal">
+        <div class="modal-box" role="dialog" aria-modal="true"
+             aria-labelledby="share-letter-title">
+            <a class="btn btn-icon modal-close" href="#" aria-label="Luk">
+                <svg th:replace="~{fragments/layout :: icon-close}"></svg>
+            </a>
+
+            <h2 id="share-letter-title" class="modal-title">Del ønskeseddel</h2>
+
+            <div class="field">
+                <label for="share-link">Send linket til familie og venner</label>
+                <input class="input" id="share-link" type="text" readonly
+                       th:value="${shareLink}">
+            </div>
+
+            <p class="modal-text">
+                Alle med linket kan se ønskesedlen og reservere ønsker, når de er logget ind.
+            </p>
+        </div>
+    </div>
+</th:block>
+
+</body>
+</html>

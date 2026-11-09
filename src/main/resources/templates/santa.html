@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Spørg Santa Claude')}">
+    <title>Spørg Santa Claude – Santa Claude</title>
+</head>
+<!--
+    Ask Santa Claude for gift ideas. You "sit on Santa's lap": the chat card
+    rests on his lap, and he holds it with his mittens.
+    Everything below is sample content for the design.
+    The "Julemanden kigger i værkstedet …" bubble has class htmx-indicator: it stays
+    hidden until htmx sends the question (add hx-post + hx-indicator to the form).
+-->
+<body>
+<div class="sky santa-page">
+    <svg th:replace="~{fragments/layout :: sky-decor}"></svg>
+    <svg th:replace="~{fragments/layout :: ground('tall')}"></svg>
+    <header th:replace="~{fragments/layout :: topbar}"></header>
+
+    <main class="santa-main">
+        <div class="santa-heading">
+            <h1 class="hero-title">Spørg Santa Claude</h1>
+            <a class="back-link" href="/wishlists/1" th:href="@{/wishlists/{id}(id=1)}">← Tilbage til ønskesedlen</a>
+        </div>
+
+        <div class="lap">
+            <!-- Santa, sitting behind the chat card, with his reading glasses on -->
+            <svg class="lap-santa" viewBox="0 0 760 300" aria-hidden="true">
+                <ellipse class="suit" cx="380" cy="370" rx="240" ry="170"/>
+                <rect class="trim" x="368" y="262" width="24" height="60" rx="4"/>
+                <path class="sleeve sleeve-big" d="M200 250 Q120 240 64 264"/>
+                <path class="sleeve sleeve-big" d="M560 250 Q640 240 696 264"/>
+
+                <circle class="skin" cx="380" cy="120" r="54"/>
+                <path class="beard" d="M326 124 Q320 262 380 274 Q440 262 434 124 Q410 156 380 152 Q350 156 326 124 Z"/>
+                <path class="brow" d="M344 98 Q356 92 368 96 M392 96 Q404 92 416 98"/>
+                <path class="happy-eyes" d="M351 120 q7 -6 14 0 M395 120 q7 -6 14 0"/>
+                <circle class="glasses" cx="358" cy="118" r="14"/>
+                <circle class="glasses" cx="402" cy="118" r="14"/>
+                <path class="glasses" d="M372 118 h16"/>
+                <circle class="cheek" cx="342" cy="140" r="9"/>
+                <circle class="cheek" cx="418" cy="140" r="9"/>
+                <path class="mouth" d="M368 160 q12 12 24 0 Z"/>
+                <ellipse class="beard" cx="364" cy="150" rx="20" ry="10"/>
+                <ellipse class="beard" cx="396" cy="150" rx="20" ry="10"/>
+                <circle class="cheek" cx="380" cy="138" r="9"/>
+
+                <path class="suit" d="M314 86 Q336 16 404 20 Q462 26 478 82 L462 92 Z"/>
+                <circle class="trim" cx="480" cy="86" r="14"/>
+                <rect class="trim" x="308" y="74" width="144" height="24" rx="12"/>
+            </svg>
+            <span class="lap-mitten lap-mitten-left" aria-hidden="true"></span>
+            <span class="lap-mitten lap-mitten-right" aria-hidden="true"></span>
+            <span class="lap-boot lap-boot-left" aria-hidden="true"></span>
+            <span class="lap-boot lap-boot-right" aria-hidden="true"></span>
+
+            <section class="chat" aria-label="Chat med Santa Claude">
+                <div class="chat-head">
+                    <h2 class="chat-title">Hvad skal vi finde?</h2>
+                    <span class="chat-for">Idéerne kommer på: Patricks ønskeseddel</span>
+                </div>
+
+                <ol class="messages">
+                    <li class="msg msg-santa">
+                        <span class="msg-from">Santa Claude</span>
+                        <p>Ho ho ho! Sæt dig bare. Fortæl mig, hvad du kan lide, og hvad det må koste, så kigger jeg i værkstedet efter idéer.</p>
+                    </li>
+                    <li class="msg msg-user">
+                        <p>Jeg kan lide kaffe og brætspil. Gerne under 500 kr.</p>
+                    </li>
+                    <li class="msg msg-santa msg-ideas">
+                        <span class="msg-from">Santa Claude</span>
+                        <p>Her er, hvad nisserne fandt:</p>
+                        <ul class="ideas">
+                            <li>
+                                <article th:replace="~{fragments/cards :: idea-card('Kaffesmagekasse', 'ca. 249 kr. · kafferisterier', 'home', 'Tre små poser fra forskellige risterier. En lille rejse gennem kaffe.', true)}"></article>
+                            </li>
+                            <li>
+                                <article th:replace="~{fragments/cards :: idea-card('Brætspil: Cascadia', 'ca. 349 kr. · brætspilsbutikker', 'play', 'Roligt, smukt og hurtigt at lære. Fungerer godt for to.', false)}"></article>
+                            </li>
+                            <li>
+                                <article th:replace="~{fragments/cards :: idea-card('Mælkeskummer', 'ca. 199 kr. · køkkenbutikker', 'tech', 'Til en rigtig cappuccino derhjemme uden maskine.', false)}"></article>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="msg msg-santa">
+                        <span class="msg-from">Santa Claude</span>
+                        <p>Vil du have flere som en af dem? Eller fortæl mig noget andet, du kan lide.</p>
+                    </li>
+                    <li class="msg msg-santa msg-waiting htmx-indicator" id="santa-thinking">
+                        <span class="msg-from">Santa Claude</span>
+                        <p>Julemanden kigger i værkstedet …</p>
+                    </li>
+                </ol>
+
+                <div class="prompt-chips" aria-label="Hurtige idéer">
+                    <button class="chip" type="button">Noget hyggeligt</button>
+                    <button class="chip" type="button">Under 200 kr.</button>
+                    <button class="chip" type="button">Til køkkenet</button>
+                    <button class="chip" type="button">Overrask mig</button>
+                </div>
+
+                <form class="ask-form" method="post" action="/letters/1/santa" th:action="@{/letters/{id}/santa(id=1)}">
+                    <label class="visually-hidden" for="ask">Spørg Santa Claude</label>
+                    <input class="input" id="ask" type="text" name="prompt" placeholder="Fortæl, hvad du kan lide, hvem gaven er til, eller dit budget …">
+                    <button class="btn btn-primary" type="submit">Spørg</button>
+                </form>
+
+                <p class="chat-note">Santa Claude foreslår idéer. Du bestemmer, hvad der kommer på din ønskeseddel.</p>
+            </section>
+        </div>
+    </main>
+</div>
+</body>
+</html>

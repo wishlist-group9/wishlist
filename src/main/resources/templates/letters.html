@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dine ønskesedler')}">
+    <title>Dine ønskesedler – Santa Claude</title>
+</head>
+<body>
+
+<div class="sky">
+    <svg th:replace="~{fragments/layout :: sky-decor}"></svg>
+    <header th:replace="~{fragments/layout :: topbar}"></header>
+
+    <section class="container hero">
+        <div class="hero-text">
+            <p class="hero-owner" th:if="${session.userName}" th:text="|Hej ${session.userName}|">Hej</p>
+            <h1 class="hero-title">Dine ønskesedler</h1>
+            <p class="hero-lead">Skriv din egen ønskeseddel, eller åbn en, som familie og venner har delt med dig.</p>
+        </div>
+        <a class="btn btn-primary" href="#new-letter">
+            <svg th:replace="~{fragments/layout :: icon-plus}"></svg>
+            Ny ønskeseddel
+        </a>
+        <svg th:replace="~{fragments/layout :: deer-left}"></svg>
+    </section>
+
+    <svg th:replace="~{fragments/layout :: ground('normal')}"></svg>
+</div>
+
+<main class="container page page-sections">
+
+    <th:block th:if="${flash}">
+        <p th:replace="~{fragments/layout :: flash(${flash})}"></p>
+    </th:block>
+
+    <p class="field-error"
+       role="alert"
+       th:if="${errorMessage}"
+       th:text="${errorMessage}">
+    </p>
+
+    <section aria-labelledby="mine-title">
+        <h2 id="mine-title" class="section-title">Skrevet af dig <span class="count" th:text="${#lists.size(ownWishlists)}">0</span></h2>
+        <ul class="grid grid-letters">
+            <li th:each="list : ${ownWishlists}">
+                <a th:replace="~{fragments/cards :: letter-card(${list.id}, ${list.title}, ${list.wishCount})}"></a>
+            </li>
+            <li>
+                <a class="new-letter" href="#new-letter">
+                    <svg th:replace="~{fragments/icons :: gift('+')}"></svg>
+                    Skriv en ny ønskeseddel
+                </a>
+            </li>
+        </ul>
+    </section>
+
+    <section aria-labelledby="shared-title">
+        <h2 id="shared-title" class="section-title">Delt med dig <span class="count" th:text="${#lists.size(sharedWishlists)}">0</span></h2>
+        <ul class="grid grid-letters" th:unless="${#lists.isEmpty(sharedWishlists)}">
+            <li th:each="list : ${sharedWishlists}">
+                <a th:replace="~{fragments/cards :: shared-letter-card(${list.id}, ${list.ownerName}, ${list.title}, ${list.wishCount})}"></a>
+            </li>
+        </ul>
+        <p class="muted" th:if="${#lists.isEmpty(sharedWishlists)}">Ingen har delt en ønskeseddel med dig endnu.</p>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<div th:replace="~{fragments/modals :: new-letter}"></div>
+
+</body>
+</html>
