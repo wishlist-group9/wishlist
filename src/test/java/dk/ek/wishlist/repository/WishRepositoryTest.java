@@ -202,4 +202,60 @@ class WishRepositoryTest {
         //Act and assert: No wish with id 999 exists
         assertEquals(0, repository.delete(999, 1));
     }
+
+    // Saves a wish on list 1 and returns its id
+    private int saveWish(String title) {
+        repository.save(new Wish(0, 1, title, null, null, null));
+        return jdbcTemplate.queryForObject("SELECT MAX(id) FROM wish", Integer.class);
+    }
+
+    private Integer reservedBy(int wishId) {
+        return jdbcTemplate.queryForObject("SELECT reserved_by FROM wish WHERE id = ?", Integer.class, wishId);
+    }
+
+    @Test
+    void reserve_freeWish_reservesIt() {
+        int wishId = saveWish("Bog");
+
+        assertEquals(1, repository.reserve(wishId, 1, 2));
+        assertEquals(2, reservedBy(wishId));
+        assertEquals(2, repository.findByWishlistId(1).get(0).getReservedBy());
+    }
+
+    @Test
+    void reserve_alreadyReserved_changesNothing() {
+        jdbcTemplate.update("INSERT INTO app_user (id, name, email, password_hash) VALUES (3, 'Anden Gæst', 'anden@test.dk', 'hash')");
+        int wishId = saveWish("Bog");
+        repository.reserve(wishId, 1, 2);
+
+        assertEquals(0, repository.reserve(wishId, 1, 3));
+        assertEquals(2, reservedBy(wishId), "the first reservation must not be overwritten");
+    }
+
+    @Test
+    void reserve_wishOnAnotherList_changesNothing() {
+        int wishId = saveWish("Bog");
+
+        assertEquals(0, repository.reserve(wishId, 2, 2));
+        assertNull(reservedBy(wishId));
+    }
+
+    @Test
+    void cancelReservation_ownReservation_freesTheWish() {
+        int wishId = saveWish("Bog");
+        repository.reserve(wishId, 1, 2);
+
+        assertEquals(1, repository.cancelReservation(wishId, 1, 2));
+        assertNull(reservedBy(wishId));
+    }
+
+    @Test
+    void cancelReservation_someoneElsesReservation_changesNothing() {
+        jdbcTemplate.update("INSERT INTO app_user (id, name, email, password_hash) VALUES (3, 'Anden Gæst', 'anden@test.dk', 'hash')");
+        int wishId = saveWish("Bog");
+        repository.reserve(wishId, 1, 2);
+
+        assertEquals(0, repository.cancelReservation(wishId, 1, 3));
+        assertEquals(2, reservedBy(wishId));
+    }
 }

@@ -19,6 +19,10 @@ public class WishService {
     private final WishRepository wishRepository;
     private final WishlistRepository wishlistRepository;
 
+    static final String ALREADY_RESERVED = "Ønsket er allerede reserveret.";
+    static final String NOT_RESERVED_BY_YOU = "Du har ikke reserveret dette ønske.";
+    static final String WISHLIST_NOT_FOUND = "Ønskesedlen findes ikke.";
+
     /**
      * Creates a service with the given repositories
      * @param wishRepository used to access and modify wish data
@@ -100,7 +104,7 @@ public class WishService {
      */
     public void updateWish(int wishId, int wishlistId, int userId, Wish wish){
         if (!wishlistRepository.existsByIdAndUserId(wishlistId, userId)) {
-            throw new NotFoundException("Ønskesedlen findes ikke.");
+            throw new NotFoundException(WISHLIST_NOT_FOUND);
         }
 
         validateWish(wish);
@@ -124,7 +128,7 @@ public class WishService {
     public void deleteWish(int wishId, int wishlistId, int userId) {
         // Use the same error for missing and inaccessible wishlists
         if (!wishlistRepository.existsByIdAndUserId(wishlistId, userId)) {
-            throw new NotFoundException("Ønskesedlen findes ikke.");
+            throw new NotFoundException(WISHLIST_NOT_FOUND);
         }
 
         int deletedRows = wishRepository.delete(wishId, wishlistId);
@@ -155,4 +159,41 @@ public class WishService {
             );
         }
     }
+    /**
+     * Reserves a wish for a guest, so nobody else buys the same gift.
+     * Only users the list is shared with may reserve; the owner never is, so they can't.
+     *
+     * @param wishId     id of the wish
+     * @param wishlistId id of the wishlist the wish is on
+     * @param userId     id of the logged-in user
+     * @throws NotFoundException     if the list isn't shared with the user (also the owner)
+     * @throws InvalidInputException if the wish is already reserved, or isn't on that list
+     */
+    public void reserve(int wishId, int wishlistId, int userId) {
+        if (!wishlistRepository.isSharedWith(wishlistId, userId)) {
+            throw new NotFoundException(WISHLIST_NOT_FOUND);
+        }
+        if (wishRepository.reserve(wishId, wishlistId, userId) == 0) {
+            throw new InvalidInputException(ALREADY_RESERVED);
+        }
+    }
+
+    /**
+     * Cancels the user's own reservation of a wish.
+     *
+     * @param wishId     id of the wish
+     * @param wishlistId id of the wishlist the wish is on
+     * @param userId     id of the logged-in user
+     * @throws NotFoundException     if the list isn't shared with the user
+     * @throws InvalidInputException if the user hasn't reserved that wish
+     */
+    public void cancelReservation(int wishId, int wishlistId, int userId) {
+        if (!wishlistRepository.isSharedWith(wishlistId, userId)) {
+            throw new NotFoundException(WISHLIST_NOT_FOUND);
+        }
+        if (wishRepository.cancelReservation(wishId, wishlistId, userId) == 0) {
+            throw new InvalidInputException(NOT_RESERVED_BY_YOU);
+        }
+    }
+
 }

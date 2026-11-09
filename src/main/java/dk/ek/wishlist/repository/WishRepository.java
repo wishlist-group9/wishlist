@@ -13,15 +13,27 @@ import java.util.List;
 @Repository
 public class WishRepository {
 
+    // Only reserves a free wish: if someone else got there first, 0 rows change.
+    private static final String RESERVE =
+            "UPDATE wish SET reserved_by = ? WHERE id = ? AND wishlist_id = ? AND reserved_by IS NULL";
+    // Only cancels the user's own reservation.
+    private static final String CANCEL_RESERVATION =
+            "UPDATE wish SET reserved_by = NULL WHERE id = ? AND wishlist_id = ? AND reserved_by = ?";
+
+
     /** Turns one row from the wish table into a Wish. Shared by every query that reads wishes. */
-    private static final RowMapper<Wish> WISH_MAPPER = (rs, rowNum) -> new Wish(
-            rs.getInt("id"),
-            rs.getInt("wishlist_id"),
-            rs.getString("title"),
-            rs.getString("description"),
-            rs.getString("link"),
-            rs.getObject("price", Double.class)
-    );
+    private static final RowMapper<Wish> WISH_MAPPER = (rs, rowNum) -> {
+        Wish wish = new Wish(
+                rs.getInt("id"),
+                rs.getInt("wishlist_id"),
+                rs.getString("title"),
+                rs.getString("description"),
+                rs.getString("link"),
+                rs.getObject("price", Double.class)
+        );
+        wish.setReservedBy(rs.getObject("reserved_by", Integer.class));
+        return wish;
+    };
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -61,7 +73,7 @@ public class WishRepository {
      */
     public List<Wish> findByWishlistId(int wishlistId) {
         String sql = """
-                SELECT id, wishlist_id, title, description, link, price
+                SELECT id, wishlist_id, title, description, link, price, reserved_by
                 FROM wish
                 WHERE wishlist_id = ?
                 ORDER BY id
@@ -113,6 +125,30 @@ public class WishRepository {
                 """;
         return jdbcTemplate.update(sql, wishId, wishlistId);
 
+    }
+
+    /**
+     * Reserves a wish for a user, but only if nobody has reserved it yet.
+     *
+     * @param wishId     id of the wish
+     * @param wishlistId id of the wishlist the wish must belong to
+     * @param userId     id of the user reserving it
+     * @return 1 if the wish was reserved; 0 if it was already reserved or isn't on that list
+     */
+    public int reserve(int wishId, int wishlistId, int userId) {
+        return jdbcTemplate.update(RESERVE, userId, wishId, wishlistId);
+    }
+
+    /**
+     * Cancels a reservation, but only the user's own.
+     *
+     * @param wishId     id of the wish
+     * @param wishlistId id of the wishlist the wish must belong to
+     * @param userId     id of the user who reserved it
+     * @return 1 if the reservation was cancelled; 0 if the user hadn't reserved that wish
+     */
+    public int cancelReservation(int wishId, int wishlistId, int userId) {
+        return jdbcTemplate.update(CANCEL_RESERVATION, wishId, wishlistId, userId);
     }
 
 }
