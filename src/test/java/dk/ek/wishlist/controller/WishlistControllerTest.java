@@ -265,7 +265,7 @@ class WishlistControllerTest {
     @Test
     void show_guest_seesReserveButtonsByStatus() throws Exception {
         when(wishlistService.getVisibleWishlist(2, 5)).thenReturn(new Wishlist(5, 1, "Jul 2026", "token-1"));
-        when(wishService.getWishes(5)).thenReturn(wishesInAllStates());
+        when(wishService.getWishes(5, "default")).thenReturn(wishesInAllStates());
 
         mockMvc.perform(get("/wishlists/5").sessionAttr("userId", 2))
                 .andExpect(status().isOk())
@@ -279,7 +279,7 @@ class WishlistControllerTest {
     @Test
     void show_owner_neverSeesReservations() throws Exception {
         when(wishlistService.getVisibleWishlist(1, 5)).thenReturn(new Wishlist(5, 1, "Jul 2026", "token-1"));
-        when(wishService.getWishes(5)).thenReturn(wishesInAllStates());
+        when(wishService.getWishes(5, "default")).thenReturn(wishesInAllStates());
 
         mockMvc.perform(get("/wishlists/5").sessionAttr("userId", 1))
                 .andExpect(status().isOk())
